@@ -4,8 +4,9 @@ import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./pages/Home";
 import App from "./App";
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import StudentsPage from "./pages/StudentsPage";
+import InstitutionRegistration from "./pages/Registration";
+import WaitingPage from "./pages/WaitingPage";
 
 const router = createBrowserRouter([
   // Public Routes
@@ -18,8 +19,12 @@ const router = createBrowserRouter([
         element: <Home />
     },
       {
-        path: "SuperAdminDashboard",
-        element: <SuperAdminDashboard />
+        path: "register",
+        element: <InstitutionRegistration />
+    },
+      {
+        path: "waiting",
+        element: <WaitingPage />
     },
       {
         path: "StudentsPage",

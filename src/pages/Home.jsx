@@ -1,83 +1,252 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { Navigation, Pagination, Scrollbar, A11y } from 'swiper/modules';
+import svg1 from '../assets/college students-pana.svg';
+import svg2 from '../assets/Graduation-rafiki.svg';
+import svg3 from '../assets/college campus-amico.svg';
+import svg4 from '../assets/Teaching-pana.svg';
+import svg5 from '../assets/Exams-rafiki.svg';
+import icon1 from '../assets/clock.png';
+import icon2 from '../assets/resource.png';
+import icon3 from '../assets/notification.svg';
+import { Calendar, Users, Book, Clock, Award, CheckCircle, Settings, UserPlus } from 'lucide-react';
+import Footer from '../components/Footer';
+import Navbar from '../components/navbar';
 
-import { Swiper, SwiperSlide } from 'swiper/react';
-
-// Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import 'swiper/css/scrollbar';
-
-
-
-export default function Home() {
+export default function EducationalSchedulingLanding() {
   return (
-    <div>    
-       {/* Hero Section */}
-      <main className="flex flex-col items-center justify-center flex-grow p-8 text-center">
-        <h1 className="text-5xl font-bold text-gray-800 mb-6">Welcome to the Intelligent Resource Allocator</h1>
-        <p className="text-lg text-gray-600 max-w-3xl mb-8">
-          Empower your institution with seamless resource management. From SuperAdmins orchestrating institutions to Admins and Department Heads optimizing resources — simplify the complex, effortlessly.
-        </p>
-        <div className="flex space-x-4">
-          <Link to="/login" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Get Started</Link>
-          <Link to="/about" className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Learn More</Link>
-        </div>
-      </main>
+    <div className="min-h-screen bg-white">
+      {/* Navbar */}
+      <Navbar condition={false} />
+      {/* Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
+              Get The Best Online <span className="text-blue-600">Scheduling System</span>
+            </h1>
+            <p className="mt-4 text-lg text-gray-500 max-w-md">
+              The easiest way to manage class and lab allocations for students and teachers. Perfect solution for educational institutions.
+            </p>
+            <div className="mt-8">
+              <a href="#" className="px-6 py-3 text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                Get Started
+              </a>
+            </div>
+          </div>
+          <div className="mt-12 lg:mt-0 flex justify-center">
+            <div className="relative h-64 w-64 lg:h-96 lg:w-96">
+              <div className="absolute inset-0 bg-gray-300 rounded-full  flex items-center justify-center">
 
-      {/* Cards Section */}
-      <section className="px-8 py-12 bg-white">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Why Choose Us?</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-6 bg-gray-100 rounded-lg shadow-md">
-            <h3 className="text-xl font-bold mb-4">Efficient Resource Management</h3>
-            <p className="text-gray-600">Optimize your institution's resources, ensuring nothing goes to waste. Our intelligent system helps you track, allocate, and manage resources efficiently, preventing overuse or shortages.</p>
-          </div>
-          <div className="p-6 bg-gray-100 rounded-lg shadow-md">
-            <h3 className="text-xl font-bold mb-4">User Role Hierarchy</h3>
-            <p className="text-gray-600">Seamlessly manage roles — SuperAdmins, Admins, Department Heads, and more. Ensure only authorized personnel can allocate and request resources, maintaining organizational control and security.</p>
-          </div>
-          <div className="p-6 bg-gray-100 rounded-lg shadow-md">
-            <h3 className="text-xl font-bold mb-4">Real-Time Updates</h3>
-            <p className="text-gray-600">Get instant feedback and updates on resource allocations and requests. Stay informed with live notifications, ensuring smooth operations and swift decision-making.</p>
+              <img 
+                src={svg1} 
+                alt="svg1"
+                className="relative z-10"
+              />
+              </div>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      
-  <div className='w-2/5 m-auto py-14'>
-          <Swiper
-          // install Swiper modules
-          modules={[Navigation, Scrollbar, A11y]}
-          slidesPerView={1}
-          navigation
-          scrollbar={{ draggable: true }}
-          onSwiper={(swiper) => console.log(swiper)}
-          onSlideChange={() => console.log('slide change')}
-        >
-          <SwiperSlide>
-      <div className=" p-6 bg-white rounded-lg shadow-md text-center">
-            <p className="text-gray-600">"This platform transformed how we manage resources. Incredibly intuitive and fast!"</p>
-            <p className="mt-4 font-bold">- Admin, XYZ Institution</p>
+      {/* Why Use Our System */}
+      <div className="bg-gray-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900">Why Use EduSchedule?</h2>
+            <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+              We offer the best scheduling system designed specifically for educational institutions with role-based access control.
+            </p>
           </div>
-      </SwiperSlide>
-      <SwiperSlide><div className=" p-6 bg-white rounded-lg shadow-md text-center">
-            <p className="text-gray-600">"A game-changer for our department. Resource allocation has never been this smooth."</p>
-            <p className="mt-4 font-bold">- Department Head, ABC University</p>
-          </div></SwiperSlide>
-      <SwiperSlide><div className=" p-6 bg-white rounded-lg shadow-md text-center">
-            <p className="text-gray-600">"Highly recommend! Streamlined all our processes effortlessly."</p>
-            <p className="mt-4 font-bold">- SuperAdmin, LMN College</p>
-          </div></SwiperSlide>
-    </Swiper>
-        </div>
 
-  {/* Footer */}
-  <footer className="bg-gray-600 text-center p-4 text-white shadow-t-md">
-    © 2025 Intelligent Resource Allocator. All rights reserved.
-  </footer>
-</div>
-  )
+          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4">
+                <Clock className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">Easy To Use</h3>
+              <p className="mt-2 text-gray-500">
+                Simple interface for creating and managing schedules for classes and labs with just a few clicks.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 mb-4">
+                <Users className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">Multiple User Roles</h3>
+              <p className="mt-2 text-gray-500">
+                Support for different user roles including super admin, institution admin, department heads, teachers, and students.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mb-4">
+                <Settings className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">Flexible Management</h3>
+              <p className="mt-2 text-gray-500">
+                Teachers can request schedule changes, and administrators can easily manage and approve these requests.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Platform Features */}
+      <div className="bg-[#cde6ff] py-16" id='features'>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+            <div className="flex justify-center mb-10 lg:mb-0">
+              <div className="relative">
+                <div className="relative z-10 bg-white rounded-lg shadow-lg overflow-hidden border-2 border-blue-200">
+                  <img 
+                    src={svg2}
+                    alt="svg2" 
+                    className="w-56 h-auto"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold ">#1 Platform For Educational Scheduling</h2>
+              <p className="mt-">
+                The most comprehensive scheduling platform designed specifically for educational institutions of all sizes.
+              </p>
+              <div className="mt-8 space-y-4">
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 " />
+                  <span className="ml-2 ">100% Customizable Features</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 " />
+                  <span className="ml-2 ">Real-time Schedule Updates</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5" />
+                  <span className="ml-2 ">Role-based Access Control</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 " />
+                  <span className="ml-2 ">Advanced Reporting System</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Our Features */}
+      <div className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900">Our Features</h2>
+            <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+              Explore our comprehensive features designed to make educational scheduling efficient and user-friendly.
+            </p>
+          </div>
+
+          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+              <img 
+                src={svg3} 
+                alt="Institution Management" 
+                className="m-auto h-40 object-cover rounded-md mb-4"
+              />
+              <h3 className="text-lg font-medium text-gray-900">Institution Management</h3>
+              <p className="mt-2 text-gray-500">
+                Create and manage multiple institutions with customized settings and user roles.
+              </p>
+              <a href="#" className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium inline-block">Learn More</a>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+              <img 
+                src={svg5}
+                alt="Schedule Management" 
+                className="m-auto h-40 object-cover rounded-md mb-4"
+              />
+              <h3 className="text-lg font-medium text-gray-900">Schedule Management</h3>
+              <p className="mt-2 text-gray-500">
+                Create, edit, and manage class and lab schedules with conflict detection.
+              </p>
+              <a href="#" className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium inline-block">Learn More</a>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+              <img 
+                src={svg4} 
+                alt="User Role Management" 
+                className="m-auto h-40 object-cover rounded-md mb-4"
+              />
+              <h3 className="text-lg font-medium text-gray-900">User Role Management</h3>
+              <p className="mt-2 text-gray-500">
+                Define user roles with specific permissions and access levels.
+              </p>
+              <a href="#" className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium inline-block">Learn More</a>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <h3 className="text-xl font-bold text-gray-900">More Features</h3>
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="flex items-center">
+                <img 
+                  src={icon1} 
+                  alt="Feature" 
+                  className="w-16 h-16 object-cover rounded-md"
+                />
+                <div className="ml-4 text-left">
+                  <h4 className="text-base font-medium text-gray-900">Automated Time Slot Generation</h4>
+                  <p className="mt-1 text-sm text-gray-500">Smart scheduling system</p>
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <img 
+                  src={icon2}
+                  alt="Feature" 
+                  className="w-16 h-16 object-cover rounded-md"
+                />
+                <div className="ml-4 text-left">
+                  <h4 className="text-base font-medium text-gray-900">Resource Management</h4>
+                  <p className="mt-1 text-sm text-gray-500">Track rooms and equipment</p>
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <img 
+                  src={icon3} 
+                  alt="Feature" 
+                  className="w-16 h-16 object-cover rounded-md"
+                />
+                <div className="ml-4 text-left">
+                  <h4 className="text-base font-medium text-gray-900">Notification System</h4>
+                  <p className="mt-1 text-sm text-gray-500">Real-time alerts for changes</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Call to Action */}
+      <div className="bg-gray-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Ready to simplify your educational scheduling?</h2>
+          <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+            Join thousands of educational institutions already using our platform to manage their schedules efficiently.
+          </p>
+          <div className="mt-8">
+            <a href="#" className="px-6 py-3 text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              Get Started Free
+            </a>
+            <a href="#" className="ml-4 px-6 py-3 text-base font-medium rounded-md text-blue-600 bg-white border border-blue-200 hover:bg-blue-50">
+              Request Demo
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <Footer />
+    </div>
+  );
 }
