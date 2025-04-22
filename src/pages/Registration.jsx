@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { Building, Mail, Phone, Globe, MapPin, Calendar, Users, Award, FileText, ChevronLeft } from 'lucide-react';
-import { Link } from 'react-router-dom'
+import { Building, Mail, Phone, Globe, MapPin, Calendar, Users, Award, FileText, ChevronLeft, Icon } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom'
 import Footer from '../components/Footer';
 import Navbar from '../components/navbar';
 
 export default function InstitutionRegistration() {
+  const navigate = useNavigate();
+  const [hide1, setHide1] = useState(true);
+  const [hide2, setHide2] = useState(true);
+  const [hide3, setHide3] = useState(true);
+  const [hide4, setHide4] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     year_established: '',
@@ -18,13 +23,13 @@ export default function InstitutionRegistration() {
     city: '',
     postal_code: '',
     full_address: '',
-    num_departments: '',
-    num_students_faculty: '',
     accreditation_details: '',
     additional_notes: ''
   });
 
   const handleChange = (e) => {
+    e.preventDefault();
+
     const { name, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
@@ -34,52 +39,76 @@ export default function InstitutionRegistration() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Here you would typically send the data to your backend
-    alert('Institution registration submitted successfully!');
+
+    const phoneRegex = /^\+?[\d\s\-()]{7,20}$/;
+    if (!(phoneRegex.test(formData.phone_number))) {
+      console.log("Valid phone number");
+      setHide1(false);
+      setTimeout(() => {
+        setHide1(true);
+      }, 3000);
+      return;
+    }
+    if (formData.alternate_phone.length > 0 && !phoneRegex.test(formData.alternate_phone)) { 
+      setHide2(false);
+      setTimeout(() => {
+        setHide2(true);
+      }, 3000);
+      return;
+    }
+    const urlRegex = /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/;
+    if (formData.website_url.length > 0 && !urlRegex.test(formData.website_url)) { 
+      setHide3(false);
+      setTimeout(() => {
+        setHide3(true);
+      }, 3000);
+      return;
+    }
+    const date = new Date();
+    if (Number(formData.year_established) > date.getFullYear() && formData.year_established.length > 0) { 
+      setHide4(false);
+      setTimeout(() => {
+        setHide4(true);
+      }, 3000);
+      return;
+    }
+    
+    fetch('http://127.0.0.1:5000/api/institution/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    }).then(response => {
+      if (response.ok) {
+        alert('Institution registered successfully!');
+        setFormData({
+          name: '',
+          year_established: '',
+          institution_code: '',
+          official_email: '',
+          phone_number: '',
+          alternate_phone: '',
+          website_url: '',
+          country: '',
+          state_province: '',
+          city: '',
+          postal_code: '',
+          full_address: '',
+          accreditation_details: '',
+          additional_notes: ''
+        });
+        navigate("/waiting");
+      } else {
+        alert('Failed to register institution. Please try again.');
+      }
+    }).catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred while registering the institution. Please try again.');
+    });
   };
 
-  const InputField = ({ icon: Icon, label, name, type = 'text', placeholder, required = false }) => (
-    <div className="mb-4">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">{label}{required && <span className="text-red-500">*</span>}</label>
-      <div className="relative rounded-md shadow-sm">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon className="h-5 w-5 text-gray-400" />
-        </div>
-        <input
-          type={type}
-          name={name}
-          id={name}
-          value={formData[name]}
-          onChange={handleChange}
-          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
-          placeholder={placeholder}
-          required={required}
-        />
-      </div>
-    </div>
-  );
-
-  const TextareaField = ({ icon: Icon, label, name, placeholder, required = false }) => (
-    <div className="mb-4">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">{label}{required && <span className="text-red-500">*</span>}</label>
-      <div className="relative rounded-md shadow-sm">
-        <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
-          <Icon className="h-5 w-5 text-gray-400" />
-        </div>
-        <textarea
-          name={name}
-          id={name}
-          rows="3"
-          value={formData[name]}
-          onChange={handleChange}
-          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
-          placeholder={placeholder}
-          required={required}
-        ></textarea>
-      </div>
-    </div>
-  );
+ 
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -105,28 +134,70 @@ export default function InstitutionRegistration() {
               <div>
                 <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 mt-4">
-                  <InputField 
-                    icon={Building} 
-                    label="Institution Name" 
-                    name="name" 
-                    placeholder="Enter institution name"
-                    required={true}
-                  />
-
-                  <InputField 
-                    icon={Calendar} 
-                    label="Year Established" 
-                    name="year_established" 
-                    type="number" 
-                    placeholder="YYYY"
-                  />
-
-                  <InputField 
-                    icon={FileText} 
-                    label="Institution Code" 
-                    name="institution_code" 
-                    placeholder="Unique institution code"
-                  />
+                  <div className="mb-4">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Institution Name<span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Building className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                        placeholder="Enter institution name"
+                        required={true}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="mb-4">
+                      <label htmlFor="year_established" className="block text-sm font-medium text-gray-700 mb-1">
+                        Year Established
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Calendar className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="number"
+                          name="year_established"
+                          id="year_established"
+                          value={formData.year_established}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="YYYY"
+                        />
+                      </div>
+                    </div>
+                    <p className={`text-sm text-red-500 ${hide4 ? "opacity-0" : "opacity-100"}`}>Year should be valid</p>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="institution_code" className="block text-sm font-medium text-gray-700 mb-1">
+                      Institution Code<span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FileText className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        name="institution_code"
+                        id="institution_code"
+                        value={formData.institution_code}
+                        onChange={handleChange}
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                        placeholder="Unique institution code"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -134,36 +205,99 @@ export default function InstitutionRegistration() {
               <div>
                 <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 mt-4">
-                  <InputField 
-                    icon={Mail} 
-                    label="Official Email" 
-                    name="official_email" 
-                    type="email" 
-                    placeholder="official@institution.edu"
-                    required={true}
-                  />
-
-                  <InputField 
-                    icon={Phone} 
-                    label="Phone Number" 
-                    name="phone_number" 
-                    placeholder="+1 (123) 456-7890"
-                    required={true}
-                  />
-
-                  <InputField 
-                    icon={Phone} 
-                    label="Alternate Phone" 
-                    name="alternate_phone" 
-                    placeholder="+1 (123) 456-7890"
-                  />
-
-                  <InputField 
-                    icon={Globe} 
-                    label="Website URL" 
-                    name="website_url" 
-                    placeholder="https://www.institution.edu"
-                  />
+                  <div>
+                    <p className='opacity-0'>POkA</p>
+                    <div className="mb-4">
+                      <label htmlFor="official_email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Official Email<span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Mail className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="email"
+                          name="official_email"
+                          id="official_email"
+                          value={formData.official_email}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="official@institution.edu"
+                          required={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className={`text-sm text-red-500 ${hide1 ? "opacity-0" : "opacity-100"}`}>Please provide a valid Contact No for official communication.</p>
+                    <div className="mb-4">
+                      <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number<span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Phone className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          name="phone_number"
+                          id="phone_number"
+                          value={formData.phone_number}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="+1 (123) 456-7890"
+                          required={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className={`text-sm text-red-500 ${hide2 ?  "opacity-0" : "opacity-100"}`}>Please provide a valid Contact No for official communication.</p>
+                    <div className="mb-4">
+                      <label htmlFor="alternate_phone" className="block text-sm font-medium text-gray-700 mb-1">
+                        Alternate Phone
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Phone className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          name="alternate_phone"
+                          id="alternate_phone"
+                          value={formData.alternate_phone}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="+1 (123) 456-7890"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className={`text-sm text-red-500 ${hide3 ? "opacity-0" : "opacity-100"}`}>Please provide a valid URL.</p>
+                    <div className="mb-4">
+                      <label htmlFor="website_url" className="block text-sm font-medium text-gray-700 mb-1">
+                        Website URL
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Globe className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          name="website_url"
+                          id="website_url"
+                          value={formData.website_url}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="https://www.institution.edu"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -171,46 +305,116 @@ export default function InstitutionRegistration() {
               <div>
                 <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Location Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 mt-4">
-                  <InputField 
-                    icon={MapPin} 
-                    label="Country" 
-                    name="country" 
-                    placeholder="Enter country"
-                    required={true}
-                  />
+                  <div className="mb-4">
+                    <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
+                      Country<span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        name="country"
+                        id="country"
+                        value={formData.country}
+                        onChange={handleChange}
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                        placeholder="Enter country"
+                        required={true}
+                      />
+                    </div>
+                  </div>
 
-                  <InputField 
-                    icon={MapPin} 
-                    label="State/Province" 
-                    name="state_province" 
-                    placeholder="Enter state or province"
-                    required={true}
-                  />
+                  <div className="mb-4">
+                    <label htmlFor="state_province" className="block text-sm font-medium text-gray-700 mb-1">
+                      State/Province<span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        name="state_province"
+                        id="state_province"
+                        value={formData.state_province}
+                        onChange={handleChange}
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                        placeholder="Enter state or province"
+                        required={true}
+                      />
+                    </div>
+                  </div>
 
-                  <InputField 
-                    icon={MapPin} 
-                    label="City" 
-                    name="city" 
-                    placeholder="Enter city"
-                    required={true}
-                  />
+                  <div className="mb-4">
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+                      City<span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        name="city"
+                        id="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                        placeholder="Enter city"
+                        required={true}
+                      />
+                    </div>
+                  </div>
 
-                  <InputField 
-                    icon={MapPin} 
-                    label="Postal Code" 
-                    name="postal_code" 
-                    placeholder="Enter postal code"
-                    required={true}
-                  />
+                  <div className="mb-4">
+                    <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-1">
+                      Postal Code<span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        name="postal_code"
+                        id="postal_code"
+                        value={formData.postal_code}
+                        onChange={handleChange}
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                        placeholder="Enter postal code"
+                        required={true}
+                      />
+                    </div>
+                  </div>
 
                   <div className="md:col-span-2">
-                    <TextareaField 
-                      icon={MapPin} 
-                      label="Full Address" 
-                      name="full_address" 
-                      placeholder="Enter complete street address"
-                        required={true}
-                    />
+
+                      <div className="mb-4">
+                      <label htmlFor="full_address" className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Address<span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
+                          <MapPin className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <textarea
+                          name="full_address"
+                          id="full_address"
+                          rows="3"
+                          onChange={handleChange}
+                          value={formData.full_address}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="Enter complete street address"
+                          required
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+
+
                   </div>
                 </div>
               </div>
@@ -219,58 +423,67 @@ export default function InstitutionRegistration() {
               <div>
                 <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Additional Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 mt-4">
-                  <InputField 
-                    icon={Building} 
-                    label="Number of Departments" 
-                    name="num_departments" 
-                    type="number" 
-                    placeholder="Enter total number of departments"
-                  />
-
-                  <InputField 
-                    icon={Users} 
-                    label="Number of Students & Faculty" 
-                    name="num_students_faculty" 
-                    type="number" 
-                    placeholder="Total students and faculty members"
-                  />
 
                   <div className="md:col-span-2">
-                    <TextareaField 
-                      icon={Award} 
-                      label="Accreditation Details" 
-                      name="accreditation_details" 
-                      placeholder="Enter accreditation information if applicable"
-                    />
+                    
+                    <div className="mb-4">
+                      <label htmlFor="accreditation_details" className="block text-sm font-medium text-gray-700 mb-1">
+                        Accreditation Details
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
+                          <Award className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <textarea
+                          name="accreditation_details"
+                          id="accreditation_details"
+                          rows="3"
+                          onChange={handleChange}
+                          value={formData.accreditation_details}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="Enter accreditation information if applicable"
+                          
+                        ></textarea>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="md:col-span-2">
-                    <TextareaField 
-                      icon={FileText} 
-                      label="Additional Notes" 
-                      name="additional_notes" 
-                      placeholder="Any other information you would like to provide"
-                    />
+                    <div className="mb-4">
+                      <label htmlFor="additional_notes" className="block text-sm font-medium text-gray-700 mb-1">
+                        Additional Notes
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
+                          <Users className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <textarea
+                          name="additional_notes"
+                          id="additional_notes"
+                          rows="3"
+                          value={formData.additional_notes}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="Any other information you would like to provide"
+                         
+                        ></textarea>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t">
-                <Link to={"/waiting"}><button
+                <button
                   type="submit"
                   className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Register Institution
                 </button>
-                </Link>
               </div>
-            </div>
           </form>
         </div>
-
       </div>
-
-      {/* Footer */}
       <Footer />
     </div>
   );

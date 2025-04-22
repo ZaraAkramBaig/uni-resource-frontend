@@ -1,5 +1,6 @@
 
-import { CheckCircle2, Clock, Sparkles } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, Clock, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function WaitingPage() {
 
@@ -7,6 +8,10 @@ export default function WaitingPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100 p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 space-y-6">
+      <Link to="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Home
+          </Link>
         <div className="flex justify-center">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center">

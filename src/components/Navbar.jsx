@@ -21,7 +21,7 @@ export default function Navbar({condition}) {
           condition ? ""
           :
         <div className="hidden lg:flex items-center">
-          <a href="#" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">Log in</a>
+          <Link to="/login" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">Log in</Link>
           <Link to="/register" className="ml-4 px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Register Your Institution</Link>
         </div> 
         }
@@ -52,7 +52,7 @@ export default function Navbar({condition}) {
         </div>
         <div className="pt-4 pb-3 border-t border-gray-100">
           <div className="px-2 space-y-1">
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-500 hover:bg-gray-50">Log in</a>
+          <Link to="/login" className="block px-3 py-2 text-base font-medium text-gray-500 hover:bg-gray-50">Log in</Link>
             <Link to="/register" className="ml-4 px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Register Your Institution</Link>
           </div>
         </div>

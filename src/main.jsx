@@ -7,6 +7,8 @@ import App from "./App";
 import StudentsPage from "./pages/StudentsPage";
 import InstitutionRegistration from "./pages/Registration";
 import WaitingPage from "./pages/WaitingPage";
+import Login from "./pages/Login";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 
 const router = createBrowserRouter([
   // Public Routes
@@ -23,8 +25,16 @@ const router = createBrowserRouter([
         element: <InstitutionRegistration />
     },
       {
+        path: "login",
+        element: <Login />
+    },
+      {
         path: "waiting",
         element: <WaitingPage />
+    },
+      {
+        path: "superAdmin",
+        element: <SuperAdminDashboard />
     },
       {
         path: "StudentsPage",
