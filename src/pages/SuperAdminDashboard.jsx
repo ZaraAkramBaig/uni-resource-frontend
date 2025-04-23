@@ -14,12 +14,14 @@ const SuperAdminDashboard = () => {
     }).catch(error => {
       console.error('Error fetching institutions:', error);
     });
-
   }, []);
-
+  useEffect(() => {
+    setActiveInstitutions(institutions.filter(inst => inst.active === true));
+  }, [institutions]);
+  
   // State for forms
   const pendingRequests = institutions.filter(institution => institution.active === false);
-  const activeInstitutions = institutions.filter(institution => institution.active === true);
+  const [activeInstitutions,setActiveInstitutions] = useState([]);
 
   const [showNewAdminForm, setShowNewAdminForm] = useState([false, null]);
   const [newAdmin, setNewAdmin] = useState({});
@@ -42,26 +44,30 @@ const SuperAdminDashboard = () => {
   const handleNewAdminSubmit = async(e) => {
     try {
       e.preventDefault();
-      console.log('New admin data:', newAdmin);
       let institutionId = showNewAdminForm[1];
-      const response = await fetchAPI(`http://127.0.0.1:5000/api/institution/${institutionId}/approve`, 'POST', {active: true})
-      console.log('Response:', response);
       const adminResponse = await fetchAPI(`http://127.0.0.1:5000/api/institution/${institutionId}/admin/register`, `POST`, newAdmin);
-      console.log('Admin Response:', adminResponse);
+      console.log(adminResponse);
+      setShowNewAdminForm(false);
+      setNewAdmin({
+        institutionName: '',
+        adminName: '',
+        adminEmail: '',
+        adminPhone: '',
+        adminPassword: ''
+      });
+      fetchAPI('http://127.0.0.1:5000/api/institution', 'GET').then(data => {
+        console.log(data);
+        setInstitutions(data);
+      }).catch(error => {
+        console.error('Error fetching institutions:', error);
+      });
+  
+      alert("New admin account created successfully!");
     }
     catch (error) {
         console.error('Error creating new admin:', error);
         alert("Error creating new admin account. Please try again.");
     }
-    setShowNewAdminForm(false);
-    setNewAdmin({
-      institutionName: '',
-      adminName: '',
-      adminEmail: '',
-      adminPhone: '',
-      adminPassword: ''
-    });
-    alert("New admin account created successfully!");
   };
 
   //Handle request rejection
@@ -83,28 +89,7 @@ const SuperAdminDashboard = () => {
           <h1 className="text-2xl font-bold">EduScheduler</h1>
           <p className="text-indigo-200 text-sm">Super Admin Panel</p>
         </div>
-        <nav className="mt-6">
-          <div className="px-4 py-3 bg-indigo-900 flex items-center text-indigo-100">
-            <Users className="mr-3" size={20} />
-            <span>Institutions</span>
-          </div>
-          <a href="#" className="px-4 py-3 flex items-center text-indigo-200 hover:bg-indigo-700">
-            <Bell className="mr-3" size={20} />
-            <span>Requests</span>
-          </a>
-          <a href="#" className="px-4 py-3 flex items-center text-indigo-200 hover:bg-indigo-700">
-            <Clock className="mr-3" size={20} />
-            <span>Activity Logs</span>
-          </a>
-          <a href="#" className="px-4 py-3 flex items-center text-indigo-200 hover:bg-indigo-700">
-            <Settings className="mr-3" size={20} />
-            <span>System Settings</span>
-          </a>
-          <a href="#" className="px-4 py-3 flex items-center text-indigo-200 hover:bg-indigo-700">
-            <BookOpen className="mr-3" size={20} />
-            <span>Documentation</span>
-          </a>
-        </nav>
+        
         <div className="absolute bottom-0 left-0 w-64 p-4 bg-indigo-900">
           <div className="flex items-center">
             <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">
@@ -226,7 +211,7 @@ const SuperAdminDashboard = () => {
                   const searchValue = e.target.value.toLowerCase();
                   const filteredInstitutions = institutions.filter(institution => institution.name.toLowerCase().startsWith(searchValue));
                   console.log(filteredInstitutions);
-                  setInstitutions(filteredInstitutions);
+                  setActiveInstitutions(filteredInstitutions);
                 }} placeholder="Filter institutions..." className="px-4 py-2 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
                 <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
               </div>
@@ -376,3 +361,5 @@ const SuperAdminDashboard = () => {
 };
 
 export default SuperAdminDashboard;
+
+// service_iqqqebh

@@ -9,6 +9,7 @@ import InstitutionRegistration from "./pages/Registration";
 import WaitingPage from "./pages/WaitingPage";
 import Login from "./pages/Login";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import InstitutionAdminDashboard from "./pages/InstituteAdminPage";
 
 const router = createBrowserRouter([
   // Public Routes
@@ -39,6 +40,11 @@ const router = createBrowserRouter([
       {
         path: "StudentsPage",
         element: <StudentsPage />
+    }
+    ,
+      {
+        path: "institutionAdminPage",
+        element: <InstitutionAdminDashboard />
     }
     ]
   },

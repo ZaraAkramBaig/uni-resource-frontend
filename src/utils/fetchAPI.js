@@ -19,7 +19,5 @@ export async function fetchAPI(url, method, body) {
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
-    let res = await response.json();
-    console.log(res);
-    return res;
+    return response.json();
 }
