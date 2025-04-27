@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building, Mail, Phone, Globe, MapPin, Calendar, Users, Award, FileText, ChevronLeft, Icon } from 'lucide-react';
+import { Building, Mail, Phone, Globe, MapPin, Calendar, Users, Award, FileText, ChevronLeft, Icon, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom'
 import Footer from '../components/Footer';
 import Navbar from '../components/navbar';
@@ -10,6 +10,8 @@ export default function InstitutionRegistration() {
   const [hide2, setHide2] = useState(true);
   const [hide3, setHide3] = useState(true);
   const [hide4, setHide4] = useState(true);
+  const [localData, setLocalData] = useState({
+  });
   const [formData, setFormData] = useState({
     name: '',
     year_established: '',
@@ -24,7 +26,10 @@ export default function InstitutionRegistration() {
     postal_code: '',
     full_address: '',
     accreditation_details: '',
-    additional_notes: ''
+    additional_notes: '',
+    admin_phone_number: '',
+    admin_full_name: '',
+
   });
 
   const handleChange = (e) => {
@@ -37,11 +42,21 @@ export default function InstitutionRegistration() {
     }));
   };
 
+
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const phoneRegex = /^\+?[\d\s\-()]{7,20}$/;
     if (!(phoneRegex.test(formData.phone_number))) {
+      console.log("Valid phone number");
+      setHide1(false);
+      setTimeout(() => {
+        setHide1(true);
+      }, 3000);
+      return;
+    }
+    if (!(phoneRegex.test(formData.admin_phone_number))) {
       console.log("Valid phone number");
       setHide1(false);
       setTimeout(() => {
@@ -73,6 +88,7 @@ export default function InstitutionRegistration() {
       return;
     }
     
+
     fetch('http://127.0.0.1:5000/api/institution/register', {
       method: 'POST',
       headers: {
@@ -81,7 +97,6 @@ export default function InstitutionRegistration() {
       body: JSON.stringify(formData)
     }).then(response => {
       if (response.ok) {
-        alert('Institution registered successfully!');
         setFormData({
           name: '',
           year_established: '',
@@ -96,7 +111,10 @@ export default function InstitutionRegistration() {
           postal_code: '',
           full_address: '',
           accreditation_details: '',
-          additional_notes: ''
+          additional_notes: '',
+          admin_phone_number: '',
+          admin_full_name: '',
+
         });
         navigate("/waiting");
       } else {
@@ -206,8 +224,8 @@ export default function InstitutionRegistration() {
                 <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 mt-4">
                   <div>
-                    <p className='opacity-0'>POkA</p>
                     <div className="mb-4">
+                      <p className='opacity-0'>Poka</p>
                       <label htmlFor="official_email" className="block text-sm font-medium text-gray-700 mb-1">
                         Official Email<span className="text-red-500">*</span>
                       </label>
@@ -298,6 +316,61 @@ export default function InstitutionRegistration() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+              {/* Admin Information Section */}
+              <div>
+                <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Admin Information</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 mt-4">
+                  <div>
+                  <p className='opacity-0'>Poka</p>
+                    <div className="mb-4">
+                      <label htmlFor="official_email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Admin's Full Name<span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <User className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          id="name"
+                          name='admin_full_name'
+                          value={formData.admin_full_name}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="John Doe"
+                          required={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className={`text-sm text-red-500 ${hide1 ? "opacity-0" : "opacity-100"}`}>Please provide a valid Contact No for official communication.</p>
+                    <div className="mb-4">
+                      <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">
+                        Admin's Contact<span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Phone className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          name="admin_phone_number"
+                          id="phone_number"
+                          value={formData.admin_phone_number}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                          placeholder="+1 (123) 456-7890"
+                          required={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                 
                 </div>
               </div>
 

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { PlusCircle, Users, School, Clock, Bell, Settings, Search, Eye, Check, X, AlertTriangle, BookOpen } from 'lucide-react';
 import { fetchAPI } from '../utils/fetchAPI';
 const SuperAdminDashboard = () => {
 
+  const [showNewAdminForm, setShowNewAdminForm] = useState([false, null]);
   const [institutions, setInstitutions] = useState([]);
 
   useEffect(() => {
@@ -15,15 +16,25 @@ const SuperAdminDashboard = () => {
       console.error('Error fetching institutions:', error);
     });
   }, []);
-  useEffect(() => {
+  useLayoutEffect(() => {
     setActiveInstitutions(institutions.filter(inst => inst.active === true));
   }, [institutions]);
+
+  useEffect(() => {
+    if (showNewAdminForm[0]) {
+      setNewAdmin(prevState => ({
+        ...prevState,
+        full_name: showNewAdminForm[1].admin_full_name,
+        phone: showNewAdminForm[1].admin_phone_number
+      }));
+    }
+  }, [showNewAdminForm]);
   
   // State for forms
   const pendingRequests = institutions.filter(institution => institution.active === false);
   const [activeInstitutions,setActiveInstitutions] = useState([]);
 
-  const [showNewAdminForm, setShowNewAdminForm] = useState([false, null]);
+  const [showModal, setModal] = useState([false, null]);
   const [newAdmin, setNewAdmin] = useState({});
   // Analytics data
   const analyticsData = {
@@ -31,6 +42,7 @@ const SuperAdminDashboard = () => {
     activeInstitutions: activeInstitutions.length,
     pendingRequests: pendingRequests.length
   };
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,9 +56,9 @@ const SuperAdminDashboard = () => {
   const handleNewAdminSubmit = async(e) => {
     try {
       e.preventDefault();
-      let institutionId = showNewAdminForm[1];
-      const adminResponse = await fetchAPI(`http://127.0.0.1:5000/api/institution/${institutionId}/admin/register`, `POST`, newAdmin);
-      console.log(adminResponse);
+      let institutionId = showNewAdminForm[1].id;
+      const myuser = await fetchAPI(`http://127.0.0.1:5000/api/user/register`, `POST`, {email: newAdmin.email, password: newAdmin.password, role: 'admin'});
+      const adminResponse = await fetchAPI(`http://127.0.0.1:5000/api/institution/${institutionId}/admin/register`, `POST`, {...newAdmin, user_id: myuser.user.id});
       setShowNewAdminForm(false);
       setNewAdmin({
         institutionName: '',
@@ -80,7 +92,7 @@ const SuperAdminDashboard = () => {
       console.error('Error fetching institutions:', error);
     });
   };
-
+  let num = 0;
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
@@ -178,7 +190,7 @@ const SuperAdminDashboard = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end space-x-2">
                             <button 
-                              onClick={() => setShowNewAdminForm([true, request.id])}
+                              onClick={() => setShowNewAdminForm([true, {...request}])}
                               className="text-green-600 hover:text-green-900 p-1 rounded-full hover:bg-green-100">
                               <Check size={18} />
                             </button>
@@ -187,9 +199,7 @@ const SuperAdminDashboard = () => {
                               className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-100">
                               <X size={18} />
                             </button>
-                            <button className="text-indigo-600 hover:text-indigo-900 p-1 rounded-full hover:bg-indigo-100">
-                              <Eye size={18} />
-                            </button>
+                            
                           </div>
                         </td>
                       </tr>
@@ -217,13 +227,16 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
             <div className="overflow-x-auto">
-              { activeInstitutions.length > 0 ? (<table className="w-full">
+              
+                {institutions.length > 0 ?
+              activeInstitutions.length > 0 ? (<table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Institution</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -245,10 +258,21 @@ const SuperAdminDashboard = () => {
                         </span>
                       </td>
                       
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end space-x-2">
+                            
+                            <button 
+                              onClick={() => setModal([true, institution.id])}
+                              className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-100">
+                              <X size={18} />
+                            </button>
+                            
+                          </div>
+                        </td>
                     </tr>
                   ))}  
                 </tbody>
-              </table>) : (<p className='text-center py-8'>No Institutions Registered</p>)}
+              </table>) : (<p className='text-center py-8'>No Institutions Registered</p>) : (<div className='text-center'>Loading...</div>) }
             </div>
               <div className="px-6 py-4 text-sm text-gray-500">
                 Showing {institutions.length} institutions
@@ -264,18 +288,13 @@ const SuperAdminDashboard = () => {
             <div className="border-b px-6 py-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-800">Add New Institution Admin</h2>
               <button 
-                onClick={() => setShowNewAdminForm([false, null])}
+                onClick={() => setShowNewAdminForm([false, {}])}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleNewAdminSubmit} className="p-6">
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="institutionName">
-                  Institution Name
-                </label>
-              </div>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="adminName">
                   Admin's Full Name
@@ -286,9 +305,9 @@ const SuperAdminDashboard = () => {
                   id="adminName"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Enter admin name"
-                  value={newAdmin.adminName}
-                  onChange={handleChange}
+                  value={showNewAdminForm[1].admin_full_name}
                   required
+                  readOnly
                 />
               </div>
               <div className="mb-4">
@@ -301,7 +320,7 @@ const SuperAdminDashboard = () => {
                   id="adminEmail"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Enter admin email"
-                  value={newAdmin.adminEmail}
+                  value={newAdmin.email}
                   onChange={handleChange}
                   required
                 />
@@ -316,8 +335,9 @@ const SuperAdminDashboard = () => {
                   id="adminPhone"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Enter admin phone"
-                  value={newAdmin.adminPhone}
-                  onChange={handleChange}
+                  value={showNewAdminForm[1].admin_phone_number}
+                  required
+                  readOnly
                 />
               </div>
               <div className="mb-6">
@@ -353,6 +373,23 @@ const SuperAdminDashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* New Admin Modal */}
+      {showModal[0] && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div className="border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-800">Are you sure? to delete Admin's account!!!</h2>
+            </div>
+            <div className='p-6 flex items-center justify-end'>
+              <button className="py-2 mx-2 px-6 rounded-md border-black border-1" onClick={()=> setModal(false, null)}>Cancel</button>
+              <button className='py-2 mx-2 px-6 rounded-md bg-indigo-600 text-white' onClick={()=> {handleRejectRequest(showModal[1]);
+                setModal(false, null)
+              }}>Delete</button>
+            </div>
           </div>
         </div>
       )}

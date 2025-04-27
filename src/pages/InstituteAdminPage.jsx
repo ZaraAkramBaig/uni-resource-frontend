@@ -1,644 +1,628 @@
-import React, { useState } from 'react';
-import { 
-  Users, 
-  Palette, 
-  School, 
-  Clock, 
-  Bell, 
-  Settings, 
-  Search, 
-  PlusCircle, 
-  Edit, 
-  Trash, 
-  Eye, 
-  CheckSquare, 
-  BookOpen, 
-  BarChart, 
-  Layout, 
-  FileText, 
-  Grid, 
-  ChevronDown,
-  Building,
-  User,
-  LogOut
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Users, School, BookOpen, Plus, Save, X } from 'lucide-react';
+import { fetchAPI } from '../utils/fetchAPI';
 
-export default function InstitutionAdminDashboard() {
-  // Mock data for departments and department heads
-  const [departments, setDepartments] = useState([
-    { id: 1, name: 'Computer Science', head: 'Dr. Alan Turing', facultyCount: 24, studentCount: 450, createdAt: '2025-01-15' },
-    { id: 2, name: 'Mathematics', head: 'Dr. Emmy Noether', facultyCount: 18, studentCount: 320, createdAt: '2025-01-20' },
-    { id: 3, name: 'Physics', head: 'Dr. Richard Feynman', facultyCount: 22, studentCount: 380, createdAt: '2025-01-25' },
-    { id: 4, name: 'Chemistry', head: null, facultyCount: 20, studentCount: 350, createdAt: '2025-02-01' },
-    { id: 5, name: 'Biology', head: 'Dr. Rosalind Franklin', facultyCount: 19, studentCount: 410, createdAt: '2025-02-05' }
-  ]);
-
-  // Institution details
-  const [institution, setInstitution] = useState({
-    name: 'Cambridge University',
-    logo: '/api/placeholder/80/80',
-    foundedYear: 1209,
-    address: 'Cambridge CB2 1TN, United Kingdom',
-    website: 'www.cam.ac.uk',
-    adminEmail: 'admin@cam.ac.uk',
-    adminPhone: '+44 1223 337733'
-  });
-
-  // Theme settings
-  const [themeSettings, setThemeSettings] = useState({
-    primaryColor: '#1E40AF', // Cambridge blue
-    secondaryColor: '#831843',
-    fontFamily: 'Georgia',
-    logo: '/api/placeholder/120/120',
-    showDepartmentColors: true,
-    enableDarkMode: false,
-    customCSS: '/* Custom CSS styles */\n.header {\n  border-bottom: 2px solid #1E40AF;\n}'
-  });
-
-  // State for tabs and forms
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [showThemeEditor, setShowThemeEditor] = useState(false);
-  const [showNewDeptHeadForm, setShowNewDeptHeadForm] = useState(false);
-  const [showInstitutionModal, setShowInstitutionModal] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
+export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState('departments');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [modalType, setModalType] = useState('');
   
-  const [newDeptHead, setNewDeptHead] = useState({
-    departmentId: '',
+  // Data states
+  const [departments, setDepartments] = useState([]);
+  console.log(departments)
+  useEffect(()=>{
+    fetchAPI("http://127.0.0.1:5000/api/departments", "GET").then((val)=> {
+      setDepartments(val.departments)
+    })
+  }, [])
+  
+  const [teachers, setTeachers] = useState([
+    { id: 1, name: "Dr. James Wilson", email: "j.wilson@example.edu", department: "Computer Science", courses: 3 },
+    { id: 2, name: "Dr. Maria Rodriguez", email: "m.rodriguez@example.edu", department: "Physics", courses: 2 },
+    { id: 3, name: "Prof. Robert Chen", email: "r.chen@example.edu", department: "Mathematics", courses: 4 },
+    { id: 4, name: "Dr. Sarah Johnson", email: "s.johnson@example.edu", department: "Computer Science", courses: 2 },
+    { id: 5, name: "Prof. Michael Lee", email: "m.lee@example.edu", department: "Physics", courses: 3 }
+  ]);
+  
+  const [deptHeads, setDeptHeads] = useState([
+    { id: 1, name: "Dr. James Wilson", email: "j.wilson@example.edu", department: "Computer Science" },
+    { id: 2, name: "Dr. Maria Rodriguez", email: "m.rodriguez@example.edu", department: "Physics" },
+    { id: 3, name: "Prof. Robert Chen", email: "r.chen@example.edu", department: "Mathematics" }
+  ]);
+  
+  // Form states
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
-    password: ''
+    department: '',
+    courses: '',
+    students: ''
   });
-
-  // Handle form submission for new department head
-  const handleNewDeptHeadSubmit = (e) => {
-    e.preventDefault();
-    // Logic to create new department head would go here
-    // For demo purposes, we'll just close the form and update the department
-    const updatedDepartments = departments.map(dept => 
-      dept.id.toString() === newDeptHead.departmentId 
-        ? { ...dept, head: newDeptHead.name } 
-        : dept
-    );
-    
-    setDepartments(updatedDepartments);
-    setShowNewDeptHeadForm(false);
-    setNewDeptHead({
-      departmentId: '',
+  
+  // Theme settings
+  const [themeSettings, setThemeSettings] = useState({
+    primaryColor: '#1E40AF',
+    secondaryColor: '#3B82F6',
+    logo: null,
+    institutionName: 'University of Technology'
+  });
+  
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+  
+  const handleThemeChange = (e) => {
+    const { name, value } = e.target;
+    setThemeSettings({
+      ...themeSettings,
+      [name]: value
+    });
+  };
+  
+  const handleFileChange = (e) => {
+    setThemeSettings({
+      ...themeSettings,
+      logo: e.target.files[0]
+    });
+  };
+  
+  const openAddModal = (type) => {
+    setModalType(type);
+    setFormData({
       name: '',
       email: '',
-      phone: '',
-      password: ''
+      department: '',
+      courses: '',
+      students: ''
     });
-    alert("New department head account created successfully!");
+    setShowAddModal(true);
   };
 
-  // Handle theme settings update
-  const handleThemeUpdate = (e) => {
+  const handleDeleteRequest = (id) => {
+    fetchAPI(`http://127.0.0.1:5000/api/departments/${id}`, "DELETE").then(()=> {
+      const depts = departments.filter((dept)=> dept.id !== id);
+      setDepartments(depts)
+    })
+
+  }
+  
+  const handleSubmit = (e) => {
     e.preventDefault();
-    // Logic to update theme settings would go here
-    setShowThemeEditor(false);
-    alert("Theme updated successfully! Changes will be reflected throughout the institution's portal.");
+    
+    if (modalType === 'department') {
+      const newDepartment = {
+        name: formData.name,
+        code: formData.code
+
+      };
+      fetchAPI("http://127.0.0.1:5000/api/departments/register", "POST", newDepartment).catch((err)=> alert(err));
+    } 
+    else if (modalType === 'teacher') {
+      const newTeacher = {
+        id: teachers.length + 1,
+        name: formData.name,
+        email: formData.email,
+        department: formData.department,
+        courses: parseInt(formData.courses) || 0
+      };
+      setTeachers([...teachers, newTeacher]);
+    } 
+    else if (modalType === 'deptHead') {
+      // Check if this person is already a teacher
+      const existingTeacher = teachers.find(t => t.email === formData.email);
+      
+      const newDeptHead = {
+        id: deptHeads.length + 1,
+        name: existingTeacher ? existingTeacher.name : formData.name,
+        email: formData.email,
+        department: formData.department
+      };
+      
+      // Update department to reflect new head
+      const updatedDepartments = departments.map(dept => {
+        if (dept.name === formData.department) {
+          return { ...dept, head: existingTeacher ? existingTeacher.name : formData.name };
+        }
+        return dept;
+      });
+      
+      setDeptHeads([...deptHeads, newDeptHead]);
+      setDepartments(updatedDepartments);
+    }
+    
+    setShowAddModal(false);
   };
-
-  // Analytics data
-  const analyticsData = {
-    totalDepartments: departments.length,
-    totalFaculty: departments.reduce((sum, dept) => sum + dept.facultyCount, 0),
-    totalStudents: departments.reduce((sum, dept) => sum + dept.studentCount, 0),
-    pendingScheduleRequests: 8
-  };
-
-  // Color presets for theme selection
-  const colorPresets = [
-    { name: 'Cambridge Blue', primary: '#1E40AF', secondary: '#831843' },
-    { name: 'Oxford Blue', primary: '#1E3A8A', secondary: '#9D174D' },
-    { name: 'Harvard Crimson', primary: '#991B1B', secondary: '#1E40AF' },
-    { name: 'Stanford Cardinal', primary: '#9F1239', secondary: '#374151' },
-    { name: 'Yale Blue', primary: '#1E3A8A', secondary: '#B91C1C' },
-    { name: 'MIT Gray', primary: '#4B5563', secondary: '#DC2626' }
-  ];
-
-  // Department Head Modal
-  const DepartmentHeadModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold" style={{ color: themeSettings.primaryColor }}>
-            {selectedDepartment 
-              ? `Add Department Head for ${selectedDepartment.name}` 
-              : "Add New Department Head"}
-          </h2>
-          <button 
-            onClick={() => setShowNewDeptHeadForm(false)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-        
-        <form onSubmit={handleNewDeptHeadSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Department</label>
-            <select 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              style={{ focusRing: themeSettings.primaryColor }}
-              value={newDeptHead.departmentId}
-              onChange={(e) => setNewDeptHead({...newDeptHead, departmentId: e.target.value})}
-              required
-            >
-              <option value="">Select Department</option>
-              {departments.map(dept => (
-                <option key={dept.id} value={dept.id.toString()}>
-                  {dept.name} {dept.head ? '(Replace Head)' : '(No Head Assigned)'}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
-            <input 
-              type="text" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              value={newDeptHead.name}
-              onChange={(e) => setNewDeptHead({...newDeptHead, name: e.target.value})}
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
-            <input 
-              type="email" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              value={newDeptHead.email}
-              onChange={(e) => setNewDeptHead({...newDeptHead, email: e.target.value})}
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Phone Number</label>
-            <input 
-              type="tel" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              value={newDeptHead.phone}
-              onChange={(e) => setNewDeptHead({...newDeptHead, phone: e.target.value})}
-            />
-          </div>
-          
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Temporary Password</label>
-            <input 
-              type="password" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              value={newDeptHead.password}
-              onChange={(e) => setNewDeptHead({...newDeptHead, password: e.target.value})}
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">Department head will be prompted to change on first login</p>
-          </div>
-          
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => setShowNewDeptHeadForm(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-white rounded"
-              style={{ backgroundColor: themeSettings.primaryColor }}
-            >
-              Create Account
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-
-  // Institution Modal
-  const InstitutionModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold" style={{ color: themeSettings.primaryColor }}>
-            Add New Institution
-          </h2>
-          <button 
-            onClick={() => setShowInstitutionModal(false)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-        
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          setShowInstitutionModal(false);
-          alert("Institution added successfully!");
-        }}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Institution Name</label>
-            <input 
-              type="text" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Founded Year</label>
-            <input 
-              type="number" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Address</label>
-            <input 
-              type="text" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Website</label>
-            <input 
-              type="url" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Admin Email</label>
-            <input 
-              type="email" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Admin Phone</label>
-            <input 
-              type="tel" 
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Logo Upload</label>
-            <div className="flex items-center">
-              <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center text-gray-400">
-                <School size={24} />
-              </div>
-              <label className="ml-3 px-4 py-2 bg-gray-200 text-gray-700 rounded cursor-pointer hover:bg-gray-300">
-                Choose File
-                <input type="file" className="hidden" />
-              </label>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Recommended size: 120x120px. PNG or SVG format.</p>
-          </div>
-          
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => setShowInstitutionModal(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-white rounded"
-              style={{ backgroundColor: themeSettings.primaryColor }}
-            >
-              Create Institution
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-
-  // Theme Editor Modal
-  const ThemeEditorModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
-        <div className="border-b px-6 py-4 sticky top-0 bg-white z-10" style={{ borderColor: themeSettings.primaryColor }}>
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold" style={{ color: themeSettings.primaryColor }}>Customize Institution Theme</h2>
-            <button 
-              onClick={() => setShowThemeEditor(false)}
-              className="text-gray-500 hover:text-gray-700 p-1"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-        <form onSubmit={handleThemeUpdate} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-medium mb-4">Colors & Branding</h3>
-              
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Primary Color
-                </label>
-                <div className="flex items-center">
-                  <input
-                    type="color"
-                    value={themeSettings.primaryColor}
-                    onChange={(e) => setThemeSettings({...themeSettings, primaryColor: e.target.value})}
-                    className="w-10 h-10 rounded border p-1"
-                  />
-                  <input
-                    type="text"
-                    value={themeSettings.primaryColor}
-                    onChange={(e) => setThemeSettings({...themeSettings, primaryColor: e.target.value})}
-                    className="ml-2 px-3 py-2 border rounded w-28"
-                  />
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Secondary Color
-                </label>
-                <div className="flex items-center">
-                  <input
-                    type="color"
-                    value={themeSettings.secondaryColor}
-                    onChange={(e) => setThemeSettings({...themeSettings, secondaryColor: e.target.value})}
-                    className="w-10 h-10 rounded border p-1"
-                  />
-                  <input
-                    type="text"
-                    value={themeSettings.secondaryColor}
-                    onChange={(e) => setThemeSettings({...themeSettings, secondaryColor: e.target.value})}
-                    className="ml-2 px-3 py-2 border rounded w-28"
-                  />
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Font Family
-                </label>
-                <select
-                  value={themeSettings.fontFamily}
-                  onChange={(e) => setThemeSettings({...themeSettings, fontFamily: e.target.value})}
-                  className="w-full px-3 py-2 border rounded"
-                >
-                  <option value="Arial, sans-serif">Arial</option>
-                  <option value="Helvetica, sans-serif">Helvetica</option>
-                  <option value="Georgia, serif">Georgia</option>
-                  <option value="'Times New Roman', serif">Times New Roman</option>
-                  <option value="'Courier New', monospace">Courier New</option>
-                </select>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Logo Upload
-                </label>
-                <div className="flex items-center">
-                  <img src={themeSettings.logo} alt="Logo preview" className="w-16 h-16 rounded bg-gray-100" />
-                  <label className="ml-3 px-4 py-2 bg-gray-200 text-gray-700 rounded cursor-pointer hover:bg-gray-300">
-                    Choose File
-                    <input type="file" className="hidden" />
-                  </label>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Recommended size: 120x120px. PNG or SVG format.</p>
-              </div>
+  
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'departments':
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Departments</h2>
+              <button 
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                onClick={() => openAddModal('department')}
+              >
+                <Plus size={18} className="mr-1" /> Add Department
+              </button>
             </div>
             
-            <div>
-              <h3 className="text-lg font-medium mb-4">Theme Options</h3>
-              
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Preset Color Schemes
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {colorPresets.map((preset) => (
-                    <button
-                      key={preset.name}
-                      type="button"
-                      onClick={() => setThemeSettings({
-                        ...themeSettings,
-                        primaryColor: preset.primary,
-                        secondaryColor: preset.secondary
-                      })}
-                      className="p-2 border rounded text-xs text-center hover:border-blue-500"
-                    >
-                      <div className="flex justify-center space-x-1 mb-1">
-                        <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: preset.primary }}></div>
-                        <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: preset.secondary }}></div>
-                      </div>
-                      {preset.name}
-                    </button>
+            <div className="bg-white shadow overflow-hidden rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department Head
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {departments.length > 0 ? (
+                    departments.map((department) => (
+                      <tr key={department.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-900">{department.name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-gray-500">{department.head || 'No Head Assigned'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button className="text-red-600 hover:text-red-900" onClick={()=> {handleDeleteRequest(department.id)}}>Delete</button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="text-center py-4 text-gray-500">
+                        Loading departments...
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+  
+  
+        
+      case 'teachers':
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Teachers</h2>
+              <button 
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                onClick={() => openAddModal('teacher')}
+              >
+                <Plus size={18} className="mr-1" /> Add Teacher
+              </button>
+            </div>
+            
+            <div className="bg-white shadow overflow-hidden rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Courses
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {teachers.map((teacher) => (
+                    <tr key={teacher.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">{teacher.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">{teacher.email}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">{teacher.department}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">{teacher.courses}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button className="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
+                        <button className="text-red-600 hover:text-red-900">Delete</button>
+                      </td>
+                    </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+        
+      case 'deptHeads':
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Department Heads</h2>
+              <button 
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                onClick={() => openAddModal('deptHead')}
+              >
+                <Plus size={18} className="mr-1" /> Assign Department Head
+              </button>
+            </div>
+            
+            <div className="bg-white shadow overflow-hidden rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {deptHeads.map((head) => (
+                    <tr key={head.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">{head.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">{head.email}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">{head.department}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button className="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
+                        <button className="text-red-600 hover:text-red-900">Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+        
+      case 'theme':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Institution Theme Settings</h2>
+              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                <Save size={18} className="mr-1" /> Save Theme
+              </button>
+            </div>
+            
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Basic Information</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Institution Name
+                      </label>
+                      <input
+                        type="text"
+                        name="institutionName"
+                        value={themeSettings.institutionName}
+                        onChange={handleThemeChange}
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Upload Logo
+                      </label>
+                      <input
+                        type="file"
+                        name="logo"
+                        onChange={handleFileChange}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Color Theme</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Primary Color
+                      </label>
+                      <div className="flex items-center">
+                        <input
+                          type="color"
+                          name="primaryColor"
+                          value={themeSettings.primaryColor}
+                          onChange={handleThemeChange}
+                          className="h-10 w-10 rounded-md border border-gray-300 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          name="primaryColor"
+                          value={themeSettings.primaryColor}
+                          onChange={handleThemeChange}
+                          className="ml-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Secondary Color
+                      </label>
+                      <div className="flex items-center">
+                        <input
+                          type="color"
+                          name="secondaryColor"
+                          value={themeSettings.secondaryColor}
+                          onChange={handleThemeChange}
+                          className="h-10 w-10 rounded-md border border-gray-300 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          name="secondaryColor"
+                          value={themeSettings.secondaryColor}
+                          onChange={handleThemeChange}
+                          className="ml-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              <div className="mb-4">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={themeSettings.showDepartmentColors}
-                    onChange={(e) => setThemeSettings({...themeSettings, showDepartmentColors: e.target.checked})}
-                    className="h-4 w-4 mr-2"
-                  />
-                  <span className="text-gray-700">Enable department color coding</span>
-                </label>
-                <p className="text-xs text-gray-500 ml-6">Departments will have their own color identifiers</p>
-              </div>
-              
-              <div className="mb-4">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={themeSettings.enableDarkMode}
-                    onChange={(e) => setThemeSettings({...themeSettings, enableDarkMode: e.target.checked})}
-                    className="h-4 w-4 mr-2"
-                  />
-                  <span className="text-gray-700">Enable dark mode option</span>
-                </label>
-                <p className="text-xs text-gray-500 ml-6">Allow users to toggle dark mode in their interface</p>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Custom CSS
-                </label>
-                <textarea
-                  value={themeSettings.customCSS}
-                  onChange={(e) => setThemeSettings({...themeSettings, customCSS: e.target.value})}
-                  className="w-full px-3 py-2 border rounded font-mono text-sm"
-                  rows={5}
-                ></textarea>
-                <p className="text-xs text-gray-500 mt-1">Add custom CSS to fine-tune your institution's appearance</p>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium mb-4">Preview</h3>
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center pb-4 border-b" style={{ color: themeSettings.primaryColor }}>
+                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                      <School size={24} />
+                    </div>
+                    <span className="ml-3 font-bold text-xl">{themeSettings.institutionName}</span>
+                  </div>
+                  
+                  <div className="py-4">
+                    <div className="w-full h-8 mb-2 rounded" style={{ backgroundColor: themeSettings.primaryColor }}></div>
+                    <div className="w-2/3 h-8 rounded" style={{ backgroundColor: themeSettings.secondaryColor }}></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          
-          <div className="bg-gray-50 -mx-6 -mb-6 px-6 py-4 flex justify-end space-x-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setShowThemeEditor(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+        );
+        
+      default:
+        return <div>Select a tab</div>;
+    }
+  };
+  
+  const renderModal = () => {
+    if (!showAddModal) return null;
+    
+    let title = '';
+    let fields = [];
+    
+    if (modalType === 'department') {
+      title = 'Add New Department';
+      fields = [
+        { name: 'name', label: 'Department Name', type: 'text' },
+        { name: 'code', label: 'Department Code', type: 'text' }
+      ];
+    } 
+    else if (modalType === 'teacher') {
+      title = 'Add New Teacher';
+      fields = [
+        { name: 'name', label: 'Teacher Name', type: 'text' },
+        { name: 'email', label: 'Email Address', type: 'email' },
+        { 
+          name: 'department', 
+          label: 'Department', 
+          type: 'select',
+          options: departments.map(dept => ({
+            value: dept.name,
+            label: dept.name
+          }))
+        },
+        { name: 'courses', label: 'Number of Courses', type: 'number' }
+      ];
+    } 
+    else if (modalType === 'deptHead') {
+      title = 'Assign Department Head';
+      fields = [
+        { name: 'name', label: 'Name (if new)', type: 'text' },
+        { name: 'email', label: 'Email Address', type: 'email' },
+        { 
+          name: 'department', 
+          label: 'Department', 
+          type: 'select',
+          options: departments.map(dept => ({
+            value: dept.name,
+            label: dept.name
+          }))
+        }
+      ];
+    }
+    
+    return (
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+          <div className="flex justify-between items-center border-b px-6 py-4">
+            <h3 className="text-lg font-medium">{title}</h3>
+            <button 
+              onClick={() => setShowAddModal(false)}
+              className="text-gray-400 hover:text-gray-500"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-white rounded"
-              style={{ backgroundColor: themeSettings.primaryColor }}
-            >
-              Save Theme
+              <X size={20} />
             </button>
           </div>
-        </form>
+          
+          <form onSubmit={handleSubmit}>
+            <div className="px-6 py-4 space-y-4">
+              {fields.map((field) => (
+                <div key={field.name}>
+                  <label htmlFor={field.name} className="block text-sm font-medium text-gray-700 mb-1">
+                    {field.label}
+                  </label>
+                  
+                  {field.type === 'select' ? (
+                    <select
+                      id={field.name}
+                      name={field.name}
+                      value={formData[field.name]}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                      required
+                    >
+                      <option value="">Select {field.label}</option>
+                      {field.options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type={field.type}
+                      id={field.name}
+                      name={field.name}
+                      value={formData[field.name]}
+                      onChange={handleInputChange}
+                      className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2"
+                      required={field.name !== 'name' || modalType !== 'deptHead'}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <div className="bg-gray-50 px-6 py-4 flex justify-end">
+              <button
+                type="button"
+                className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-3"
+                onClick={() => setShowAddModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Add
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
+    );
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div className="w-64 bg-white shadow-md">
+        <div className="flex items-center justify-center h-16 border-b">
+          <School className="h-8 w-8 text-blue-600" />
+          <span className="ml-2 text-xl font-bold text-gray-800">EduAdmin</span>
+        </div>
+        
+        <nav className="mt-6">
+          <div className="px-4 py-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</p>
+          </div>
+          
+          <a
+            className={`flex items-center px-6 py-3 text-sm ${activeTab === 'departments' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            href="#departments"
+            onClick={() => setActiveTab('departments')}
+          >
+            <BookOpen size={18} className={activeTab === 'departments' ? 'text-blue-600' : 'text-gray-400'} />
+            <span className="mx-4">Departments</span>
+          </a>
+          
+          <a
+            className={`flex items-center px-6 py-3 text-sm ${activeTab === 'teachers' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            href="#teachers"
+            onClick={() => setActiveTab('teachers')}
+          >
+            <Users size={18} className={activeTab === 'teachers' ? 'text-blue-600' : 'text-gray-400'} />
+            <span className="mx-4">Teachers</span>
+          </a>
+          
+          <a
+            className={`flex items-center px-6 py-3 text-sm ${activeTab === 'deptHeads' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            href="#deptHeads"
+            onClick={() => setActiveTab('deptHeads')}
+          >
+            <Users size={18} className={activeTab === 'deptHeads' ? 'text-blue-600' : 'text-gray-400'} />
+            <span className="mx-4">Department Heads</span>
+          </a>
+          
+          <div className="px-4 py-2 mt-6">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Settings</p>
+          </div>
+          
+          <a
+            className={`flex items-center px-6 py-3 text-sm ${activeTab === 'theme' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            href="#theme"
+            onClick={() => setActiveTab('theme')}
+          >
+            <School size={18} className={activeTab === 'theme' ? 'text-blue-600' : 'text-gray-400'} />
+            <span className="mx-4">Institution Theme</span>
+          </a>
+        </nav>
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex-1">
+        <header className="bg-white shadow">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Admin Dashboard
+            </h1>
+          </div>
+        </header>
+        
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {renderContent()}
+        </main>
+      </div>
+      
+      {/* Modal */}
+      {renderModal()}
     </div>
   );
-
-//   // Render the main dashboard content based on active tab
-//   const renderContent = () => {
-//     switch(activeTab) {
-//       case 'dashboard':
-//         return (
-//           <main className="px-6 py-8">
-//             {/* Institution Info Card */}
-//             <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border-t-4" style={{ borderTopColor: themeSettings.primaryColor }}>
-//               <div className="flex items-start justify-between">
-//                 <div className="flex items-center">
-//                   <img src={institution.logo} alt={institution.name} className="w-16 h-16 mr-6 rounded" />
-//                   <div>
-//                     <h2 className="text-2xl font-bold mb-2">{institution.name}</h2>
-//                     <div className="text-sm text-gray-600">
-//                       <p>Founded: {institution.foundedYear}</p>
-//                       <p>Address: {institution.address}</p>
-//                       <p>Website: {institution.website}</p>
-//                     </div>
-//                   </div>
-//                 </div>
-//                 <button className="text-gray-400 hover:text-gray-600">
-//                   <Edit size={20} />
-//                 </button>
-//               </div>
-//             </div>
-
-//             {/* Analytics Cards */}
-//             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-//               <div className="bg-white rounded-lg shadow-sm p-6 border-l-4" style={{ borderLeftColor: themeSettings.primaryColor }}>
-//                 <div className="flex items-center justify-between">
-//                   <h3 className="text-gray-500 text-sm font-medium">Total Departments</h3>
-//                   <School style={{ color: themeSettings.primaryColor }} size={24} />
-//                 </div>
-//                 <p className="text-3xl font-bold text-gray-800 mt-2">{analyticsData.totalDepartments}</p>
-//                 <p className="text-gray-500 text-sm mt-2">All active departments</p>
-//               </div>
-//               <div className="bg-white rounded-lg shadow-sm p-6 border-l-4" style={{ borderLeftColor: themeSettings.secondaryColor }}>
-//                 <div className="flex items-center justify-between">
-//                   <h3 className="text-gray-500 text-sm font-medium">Total Faculty</h3>
-//                   <Users style={{ color: themeSettings.secondaryColor }} size={24} />
-//                 </div>
-//                 <p className="text-3xl font-bold text-gray-800 mt-2">{analyticsData.totalFaculty}</p>
-//                 <p className="text-gray-500 text-sm mt-2">Professors and assistants</p>
-//               </div>
-//               <div className="bg-white rounded-lg shadow-sm p-6 border-l-4" style={{ borderLeftColor: themeSettings.primaryColor }}>
-//                 <div className="flex items-center justify-between">
-//                   <h3 className="text-gray-500 text-sm font-medium">Total Students</h3>
-//                   <Users style={{ color: themeSettings.primaryColor }} size={24} />
-//                 </div>
-//                 <p className="text-3xl font-bold text-gray-800 mt-2">{analyticsData.totalStudents}</p>
-//                 <p className="text-gray-500 text-sm mt-2">Enrolled students</p>
-//               </div>
-//               <div className="bg-white rounded-lg shadow-sm p-6 border-l-4" style={{ borderLeftColor: themeSettings.secondaryColor }}>
-//                 <div className="flex items-center justify-between">
-//                   <h3 className="text-gray-500 text-sm font-medium">Schedule Requests</h3>
-//                   <Bell style={{ color: themeSettings.secondaryColor }} size={24} />
-//                 </div>
-//                 <p className="text-3xl font-bold text-gray-800 mt-2">{analyticsData.pendingScheduleRequests}</p>
-//                 <p className="text-orange-500 text-sm mt-2">Requires attention</p>
-//               </div>
-//             </div>
-
-//             {/* Theme Preview */}
-//             <div className="bg-white rounded-lg shadow-sm mb-8">
-//               <div className="border-b px-6 py-4 flex items-center justify-between">
-//                 <h2 className="text-lg font-semibold" style={{ color: themeSettings.primaryColor }}>Current Theme Preview</h2>
-//                 <button 
-//                   onClick={() => setShowThemeEditor(true)}
-//                   className="text-sm px-3 py-1 rounded flex items-center text-white"
-//                   style={{ backgroundColor: themeSettings.primaryColor }}
-//                 >
-//                   <Edit size={14} className="mr-1" />
-//                   Edit Theme
-//                 </button>
-//               </div>
-//               <div className="p-6">
-//                 <div className="flex flex-wrap gap-6">
-//                   <div className="flex-1 min-w-fit">
-//                     <h3 className="text-sm font-medium text-gray-500 mb-2">Color Palette</h3>
-//                     <div className="flex space-x-3">
-//                       <div className="flex flex-col items-center">
-//                         <div className="w-16 h-16 rounded shadow-sm" style={{ backgroundColor: themeSettings.primaryColor }}></div>
-//                         <span className="text-xs mt-1">Primary</span>
-//                       </div>
-//                       <div className="flex flex-col items-center">
-//                         <div className="w-16 h-16 rounded shadow-sm" style={{ backgroundColor: themeSettings.secondaryColor }}></div>
-//                         <span className="text-xs mt-1">Secondary</span>
-//                       </div>
-//                       <div className="flex flex-col items-center">
-//                         <div className="w-16 h-16 rounded shadow-sm bg-white border"></div>
-//                         <span className="text-xs mt-1">Background</span>
-//                       </div>
-//                       <div className="flex flex-col items-center">
-//                         <div className="w-16 h-16 rounded shadow-sm bg-gray-800"></div>
-//                         <span className="text-xs mt-1">Text</span>
-//                       </div>
-//                     </div>
-//                   </div>
-                  
-//                   <div className="flex-1 min-w-fit">
-//                     <h3 className="text-sm font-medium text-gray-500 mb-2">Typography</h3>
-//                     <div className="space-y-2">
-//                       <div style={{ fontFamily: themeSettings.fontFamily }}>
-//                         <p className="text-xl font-bold">Heading Example</p>
-//                         <p className="text-sm">This is an example of your selected font: {themeSettings.fontFamily}</p>
-//                       </div>
-//                     </div>
-//                   </div>
-                  
-//                   <div className="flex-1 min-w-fit">
-//                     <h3 className="text-sm font-medium text-gray-500 mb-2">UI Elements</h3>
-//                     <div className="space-y-2">
-//                       <button 
-//                         className="px-3 py-1 rounded text-white text-sm"
-//                         style={{ backgroundColor: themeSettings.primaryColor }}
-//                       >
-//                         Primary Button
-//                       </button>
-//                       <button 
-//                         className="px-3 py-1 rounded text-white text-sm ml-2"
-//                         style={{ backgroundColor: themeSettings.secondaryColor }}
 }
