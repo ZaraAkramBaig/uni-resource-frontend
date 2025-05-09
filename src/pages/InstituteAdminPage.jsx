@@ -1,19 +1,29 @@
 import { useEffect, useState } from 'react';
 import { Users, School, BookOpen, Plus, Save, X } from 'lucide-react';
 import { fetchAPI } from '../utils/fetchAPI';
+import { checkTokenExpiration } from '../utils/jwt_decode';
 
 export default function AdminDashboard() {
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('departments');
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalType, setModalType] = useState('');
-  
-  // Data states
+  const [deptID, setDeptID] = useState(null);
+  let decoded = checkTokenExpiration(localStorage.getItem("access_token"));
+
   const [departments, setDepartments] = useState([]);
-  console.log(departments)
+  const [deptHeads, setDeptHeads] = useState([]);
+  
   useEffect(()=>{
     fetchAPI("http://127.0.0.1:5000/api/departments", "GET").then((val)=> {
       setDepartments(val.departments)
+      setLoading(false)
     })
+    fetchAPI("http://127.0.0.1:5000/api/department_heads", "GET").then((val)=> {
+      console.log(val.department_heads)
+      setDeptHeads(val.department_heads)
+    })
+
   }, [])
   
   const [teachers, setTeachers] = useState([
@@ -24,28 +34,17 @@ export default function AdminDashboard() {
     { id: 5, name: "Prof. Michael Lee", email: "m.lee@example.edu", department: "Physics", courses: 3 }
   ]);
   
-  const [deptHeads, setDeptHeads] = useState([
-    { id: 1, name: "Dr. James Wilson", email: "j.wilson@example.edu", department: "Computer Science" },
-    { id: 2, name: "Dr. Maria Rodriguez", email: "m.rodriguez@example.edu", department: "Physics" },
-    { id: 3, name: "Prof. Robert Chen", email: "r.chen@example.edu", department: "Mathematics" }
-  ]);
-  
   // Form states
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: "",
     department: '',
     courses: '',
     students: ''
   });
   
-  // Theme settings
-  const [themeSettings, setThemeSettings] = useState({
-    primaryColor: '#1E40AF',
-    secondaryColor: '#3B82F6',
-    logo: null,
-    institutionName: 'University of Technology'
-  });
+  
   
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -55,20 +54,6 @@ export default function AdminDashboard() {
     });
   };
   
-  const handleThemeChange = (e) => {
-    const { name, value } = e.target;
-    setThemeSettings({
-      ...themeSettings,
-      [name]: value
-    });
-  };
-  
-  const handleFileChange = (e) => {
-    setThemeSettings({
-      ...themeSettings,
-      logo: e.target.files[0]
-    });
-  };
   
   const openAddModal = (type) => {
     setModalType(type);
@@ -96,42 +81,45 @@ export default function AdminDashboard() {
     if (modalType === 'department') {
       const newDepartment = {
         name: formData.name,
-        code: formData.code
-
+        code: formData.code,
+        institution_id: decoded[1].institution_id
       };
-      fetchAPI("http://127.0.0.1:5000/api/departments/register", "POST", newDepartment).catch((err)=> alert(err));
+      fetchAPI("http://127.0.0.1:5000/api/departments/register", "POST", newDepartment).then(()=>{
+        fetchAPI("http://127.0.0.1:5000/api/departments", "GET").then((depts)=>{
+          setDepartments(depts)
+        })
+      }).catch((err)=> alert(err));
     } 
     else if (modalType === 'teacher') {
       const newTeacher = {
-        id: teachers.length + 1,
         name: formData.name,
         email: formData.email,
         department: formData.department,
         courses: parseInt(formData.courses) || 0
       };
+      // fetchAPI("http://127.0.0.1:5000/api/teachers/register", "POST", newTeacher).catch((err)=> alert(err));
       setTeachers([...teachers, newTeacher]);
     } 
     else if (modalType === 'deptHead') {
-      // Check if this person is already a teacher
-      const existingTeacher = teachers.find(t => t.email === formData.email);
       
       const newDeptHead = {
-        id: deptHeads.length + 1,
-        name: existingTeacher ? existingTeacher.name : formData.name,
+        name: formData.name,
         email: formData.email,
-        department: formData.department
+        department_id: deptID,
+        institution_id: decoded[1].institution_id
       };
+
+      fetchAPI("http://127.0.0.1:5000/api/user/register", "POST", {...newDeptHead, password: formData.password, role: "DeptHead"}).then((val)=>{
+        fetchAPI("http://127.0.0.1:5000/api/department_heads/register", "POST", {...newDeptHead, user_id: val.user.id}).then(()=>{
+          fetchAPI("http://127.0.0.1:5000/api/department_heads", "GET").then((data)=>{
+            setDeptHeads(data)
+          })
+        }).catch((e)=>{
+          alert(e)
+        })
+      })
       
-      // Update department to reflect new head
-      const updatedDepartments = departments.map(dept => {
-        if (dept.name === formData.department) {
-          return { ...dept, head: existingTeacher ? existingTeacher.name : formData.name };
-        }
-        return dept;
-      });
-      
-      setDeptHeads([...deptHeads, newDeptHead]);
-      setDepartments(updatedDepartments);
+
     }
     
     setShowAddModal(false);
@@ -140,6 +128,7 @@ export default function AdminDashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'departments':
+        if (loading) return <div className='text-center'>Loading ...</div>
         return (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -160,22 +149,17 @@ export default function AdminDashboard() {
                       Department Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Department Head
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
+                  
                   {departments.length > 0 ? (
                     departments.map((department) => (
                       <tr key={department.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="font-medium text-gray-900">{department.name}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-gray-500">{department.head || 'No Head Assigned'}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <button className="text-red-600 hover:text-red-900" onClick={()=> {handleDeleteRequest(department.id)}}>Delete</button>
@@ -185,7 +169,7 @@ export default function AdminDashboard() {
                   ) : (
                     <tr>
                       <td colSpan={3} className="text-center py-4 text-gray-500">
-                        Loading departments...
+                        No Registered Departments...
                       </td>
                     </tr>
                   )}
@@ -247,8 +231,7 @@ export default function AdminDashboard() {
                         <div className="text-gray-500">{teacher.courses}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button className="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-                        <button className="text-red-600 hover:text-red-900">Delete</button>
+                        <button className="text-red-600 hover:text-red-900" >Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -299,7 +282,7 @@ export default function AdminDashboard() {
                         <div className="text-gray-500">{head.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-500">{head.department}</div>
+                        <div className="text-gray-500">{(departments.find((dept)=> dept.id === head.department_id)).name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button className="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
@@ -309,118 +292,6 @@ export default function AdminDashboard() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        );
-        
-      case 'theme':
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Institution Theme Settings</h2>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-                <Save size={18} className="mr-1" /> Save Theme
-              </button>
-            </div>
-            
-            <div className="bg-white shadow rounded-lg p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Basic Information</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Institution Name
-                      </label>
-                      <input
-                        type="text"
-                        name="institutionName"
-                        value={themeSettings.institutionName}
-                        onChange={handleThemeChange}
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Upload Logo
-                      </label>
-                      <input
-                        type="file"
-                        name="logo"
-                        onChange={handleFileChange}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Color Theme</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Primary Color
-                      </label>
-                      <div className="flex items-center">
-                        <input
-                          type="color"
-                          name="primaryColor"
-                          value={themeSettings.primaryColor}
-                          onChange={handleThemeChange}
-                          className="h-10 w-10 rounded-md border border-gray-300 cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          name="primaryColor"
-                          value={themeSettings.primaryColor}
-                          onChange={handleThemeChange}
-                          className="ml-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Secondary Color
-                      </label>
-                      <div className="flex items-center">
-                        <input
-                          type="color"
-                          name="secondaryColor"
-                          value={themeSettings.secondaryColor}
-                          onChange={handleThemeChange}
-                          className="h-10 w-10 rounded-md border border-gray-300 cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          name="secondaryColor"
-                          value={themeSettings.secondaryColor}
-                          onChange={handleThemeChange}
-                          className="ml-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-8">
-                <h3 className="text-lg font-medium mb-4">Preview</h3>
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center pb-4 border-b" style={{ color: themeSettings.primaryColor }}>
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                      <School size={24} />
-                    </div>
-                    <span className="ml-3 font-bold text-xl">{themeSettings.institutionName}</span>
-                  </div>
-                  
-                  <div className="py-4">
-                    <div className="w-full h-8 mb-2 rounded" style={{ backgroundColor: themeSettings.primaryColor }}></div>
-                    <div className="w-2/3 h-8 rounded" style={{ backgroundColor: themeSettings.secondaryColor }}></div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         );
@@ -448,6 +319,7 @@ export default function AdminDashboard() {
       fields = [
         { name: 'name', label: 'Teacher Name', type: 'text' },
         { name: 'email', label: 'Email Address', type: 'email' },
+        { name: 'password', label: 'Password', type: 'password' },
         { 
           name: 'department', 
           label: 'Department', 
@@ -465,11 +337,13 @@ export default function AdminDashboard() {
       fields = [
         { name: 'name', label: 'Name (if new)', type: 'text' },
         { name: 'email', label: 'Email Address', type: 'email' },
+        { name: 'password', label: 'Password', type: 'password' },
         { 
           name: 'department', 
           label: 'Department', 
           type: 'select',
           options: departments.map(dept => ({
+            id: dept.id,
             value: dept.name,
             label: dept.name
           }))
@@ -500,20 +374,28 @@ export default function AdminDashboard() {
                   
                   {field.type === 'select' ? (
                     <select
-                      id={field.name}
-                      name={field.name}
-                      value={formData[field.name]}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                      required
-                    >
-                      <option value="">Select {field.label}</option>
-                      {field.options.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    id={field.name}
+                    name={field.name}
+                    value={formData[field.name]}
+                    onChange={(e) => {
+                      const selectedValue = e.target.value;
+                      const selectedOption = field.options.find(opt => opt.value === selectedValue);
+                      if (selectedOption?.id) {
+                        setDeptID(selectedOption.id);
+                      }
+                      handleInputChange(e); // Keep this to update formData
+                    }}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    required
+                  >
+                    <option value="">Select {field.label}</option>
+                    {field.options.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+
                   ) : (
                     <input
                       type={field.type}
@@ -591,18 +473,7 @@ export default function AdminDashboard() {
             <span className="mx-4">Department Heads</span>
           </a>
           
-          <div className="px-4 py-2 mt-6">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Settings</p>
-          </div>
           
-          <a
-            className={`flex items-center px-6 py-3 text-sm ${activeTab === 'theme' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-            href="#theme"
-            onClick={() => setActiveTab('theme')}
-          >
-            <School size={18} className={activeTab === 'theme' ? 'text-blue-600' : 'text-gray-400'} />
-            <span className="mx-4">Institution Theme</span>
-          </a>
         </nav>
       </div>
       

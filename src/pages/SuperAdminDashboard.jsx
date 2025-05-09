@@ -1,8 +1,9 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { PlusCircle, Users, School, Clock, Bell, Settings, Search, Eye, Check, X, AlertTriangle, BookOpen } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { School,  Bell,  Search,  Check, X,  } from 'lucide-react';
 import { fetchAPI } from '../utils/fetchAPI';
-const SuperAdminDashboard = () => {
 
+const SuperAdminDashboard = () => {
+  const [loading, setLoading] = useState(true);
   const [showNewAdminForm, setShowNewAdminForm] = useState([false, null]);
   const [institutions, setInstitutions] = useState([]);
 
@@ -12,11 +13,12 @@ const SuperAdminDashboard = () => {
     fetchAPI('http://127.0.0.1:5000/api/institution', 'GET').then(data => {
       console.log(data);
       setInstitutions(data);
+      setLoading(false);
     }).catch(error => {
       console.error('Error fetching institutions:', error);
     });
   }, []);
-  useLayoutEffect(() => {
+  useEffect(() => {
     setActiveInstitutions(institutions.filter(inst => inst.active === true));
   }, [institutions]);
 
@@ -57,8 +59,8 @@ const SuperAdminDashboard = () => {
     try {
       e.preventDefault();
       let institutionId = showNewAdminForm[1].id;
-      const myuser = await fetchAPI(`http://127.0.0.1:5000/api/user/register`, `POST`, {email: newAdmin.email, password: newAdmin.password, role: 'admin'});
-      const adminResponse = await fetchAPI(`http://127.0.0.1:5000/api/institution/${institutionId}/admin/register`, `POST`, {...newAdmin, user_id: myuser.user.id});
+      const myuser = await fetchAPI(`http://127.0.0.1:5000/api/user/register`, `POST`, {email: newAdmin.email, password: newAdmin.password, role: 'admin', institution_id: institutionId});
+      await fetchAPI(`http://127.0.0.1:5000/api/institution/${institutionId}/admin/register`, `POST`, {...newAdmin, user_id: myuser.user.id});
       setShowNewAdminForm(false);
       setNewAdmin({
         institutionName: '',
@@ -92,7 +94,10 @@ const SuperAdminDashboard = () => {
       console.error('Error fetching institutions:', error);
     });
   };
-  let num = 0;
+
+  if (loading) return <div className='text-center'>Loading...</div>
+
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
@@ -228,8 +233,8 @@ const SuperAdminDashboard = () => {
             </div>
             <div className="overflow-x-auto">
               
-                {institutions.length > 0 ?
-              activeInstitutions.length > 0 ? (<table className="w-full">
+               
+              {activeInstitutions.length > 0 ? (<table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Institution</th>
@@ -272,7 +277,7 @@ const SuperAdminDashboard = () => {
                     </tr>
                   ))}  
                 </tbody>
-              </table>) : (<p className='text-center py-8'>No Institutions Registered</p>) : (<div className='text-center'>Loading...</div>) }
+              </table>) : (<p className='text-center py-8'>No Institutions Registered</p>) }
             </div>
               <div className="px-6 py-4 text-sm text-gray-500">
                 Showing {institutions.length} institutions

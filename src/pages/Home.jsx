@@ -6,7 +6,7 @@ import svg5 from '../assets/Exams-rafiki.svg';
 import icon1 from '../assets/clock.png';
 import icon2 from '../assets/resource.png';
 import icon3 from '../assets/notification.svg';
-import { Calendar, Users, Book, Clock, Award, CheckCircle, Settings, UserPlus } from 'lucide-react';
+import {Users, Clock, CheckCircle, Settings } from 'lucide-react';
 import Footer from '../components/Footer';
 import Navbar from '../components/navbar';
 

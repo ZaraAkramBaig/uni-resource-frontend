@@ -7,18 +7,12 @@ import Navbar from '../components/navbar';
 export default function InstitutionRegistration() {
   const navigate = useNavigate();
   const [hide1, setHide1] = useState(true);
-  const [hide2, setHide2] = useState(true);
   const [hide3, setHide3] = useState(true);
   const [hide4, setHide4] = useState(true);
-  const [localData, setLocalData] = useState({
-  });
   const [formData, setFormData] = useState({
     name: '',
     year_established: '',
     institution_code: '',
-    official_email: '',
-    phone_number: '',
-    alternate_phone: '',
     website_url: '',
     country: '',
     state_province: '',
@@ -48,26 +42,11 @@ export default function InstitutionRegistration() {
     e.preventDefault();
 
     const phoneRegex = /^\+?[\d\s\-()]{7,20}$/;
-    if (!(phoneRegex.test(formData.phone_number))) {
-      console.log("Valid phone number");
-      setHide1(false);
-      setTimeout(() => {
-        setHide1(true);
-      }, 3000);
-      return;
-    }
     if (!(phoneRegex.test(formData.admin_phone_number))) {
       console.log("Valid phone number");
       setHide1(false);
       setTimeout(() => {
         setHide1(true);
-      }, 3000);
-      return;
-    }
-    if (formData.alternate_phone.length > 0 && !phoneRegex.test(formData.alternate_phone)) { 
-      setHide2(false);
-      setTimeout(() => {
-        setHide2(true);
       }, 3000);
       return;
     }
@@ -101,9 +80,6 @@ export default function InstitutionRegistration() {
           name: '',
           year_established: '',
           institution_code: '',
-          official_email: '',
-          phone_number: '',
-          alternate_phone: '',
           website_url: '',
           country: '',
           state_province: '',
@@ -223,76 +199,7 @@ export default function InstitutionRegistration() {
               <div>
                 <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 mt-4">
-                  <div>
-                    <div className="mb-4">
-                      <p className='opacity-0'>Poka</p>
-                      <label htmlFor="official_email" className="block text-sm font-medium text-gray-700 mb-1">
-                        Official Email<span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Mail className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                          type="email"
-                          name="official_email"
-                          id="official_email"
-                          value={formData.official_email}
-                          onChange={handleChange}
-                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
-                          placeholder="official@institution.edu"
-                          required={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
                   
-                  <div>
-                    <p className={`text-sm text-red-500 ${hide1 ? "opacity-0" : "opacity-100"}`}>Please provide a valid Contact No for official communication.</p>
-                    <div className="mb-4">
-                      <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number<span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Phone className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                          type="text"
-                          name="phone_number"
-                          id="phone_number"
-                          value={formData.phone_number}
-                          onChange={handleChange}
-                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
-                          placeholder="+1 (123) 456-7890"
-                          required={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <p className={`text-sm text-red-500 ${hide2 ?  "opacity-0" : "opacity-100"}`}>Please provide a valid Contact No for official communication.</p>
-                    <div className="mb-4">
-                      <label htmlFor="alternate_phone" className="block text-sm font-medium text-gray-700 mb-1">
-                        Alternate Phone
-                      </label>
-                      <div className="relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Phone className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                          type="text"
-                          name="alternate_phone"
-                          id="alternate_phone"
-                          value={formData.alternate_phone}
-                          onChange={handleChange}
-                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
-                          placeholder="+1 (123) 456-7890"
-                        />
-                      </div>
-                    </div>
-                  </div>
                   
                   <div>
                     <p className={`text-sm text-red-500 ${hide3 ? "opacity-0" : "opacity-100"}`}>Please provide a valid URL.</p>

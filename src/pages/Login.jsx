@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, redirect, useNavigate } from 'react-router-dom';
+import { fetchAPI } from '../utils/fetchAPI';
+import {checkTokenExpiration} from "../utils/jwt_decode"
 
 
 export default function Login() {
@@ -21,9 +23,20 @@ export default function Login() {
             setError('Please fill in all fields.');
             return;
         }
-        if (email === 'admin@gmail.com' && password === 'admin') {
-            navigate("/superAdmin") // Redirect to students page
+        try {
+          let response = await fetchAPI("http://127.0.0.1:5000/api/login","POST", {
+            email, password
+          })
+          localStorage.setItem("access_token", response.access_token)
+          let decoded = checkTokenExpiration(response.access_token);
+          console.log(decoded)
+          if (decoded[1].role === "admin") {
+            navigate("/institutionAdminPage")
+          }
+        } catch(e) {
+          console.log(e)
         }
+        
     }
 
   return (
