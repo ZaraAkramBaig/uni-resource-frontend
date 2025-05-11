@@ -29,9 +29,17 @@ export default function Login() {
           })
           localStorage.setItem("access_token", response.access_token)
           let decoded = checkTokenExpiration(response.access_token);
-          console.log(decoded)
           if (decoded[1].role === "admin") {
-            navigate("/institutionAdminPage")
+            return navigate("/institutionAdminPage")
+          }
+          if (decoded[1].role === "superAdmin") {
+            return navigate("/superAdmin")
+          }
+          if (decoded[1].role === "DeptHead") {
+            return navigate("/deptHead")
+          }
+          if (decoded[1].role === "Teacher") {
+            return navigate("/deptHead")
           }
         } catch(e) {
           console.log(e)
@@ -85,9 +93,6 @@ export default function Login() {
                 <label htmlFor="password" className="block text-gray-700 text-sm font-semibold">
                   Password
                 </label>
-                <a href="#" className="text-sm text-indigo-600 hover:text-indigo-800">
-                  Forgot password?
-                </a>
               </div>
               <input
                 name="password"

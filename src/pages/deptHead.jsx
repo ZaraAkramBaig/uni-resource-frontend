@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import { Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, Filter, LogOut, Menu, Plus, Search, Users } from 'lucide-react';
+import {  X, User, Building, BookOpen } from "lucide-react";
+import { fetchAPI } from '../utils/fetchAPI';
+import { checkTokenExpiration } from '../utils/jwt_decode';
 
 // Main App Component
 export default function DepartmentHeadDashboard() {
@@ -58,29 +61,13 @@ export default function DepartmentHeadDashboard() {
 
       {/* Main Content */}
       <div className="flex-1">
-        <header className="bg-white p-4 shadow">
+        <header className="bg-white px-4 py-8 shadow">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-semibold text-gray-800">
               {activeTab === 'dashboard' && 'Department Head Dashboard'}
               {activeTab === 'students' && 'Student Management'}
               {activeTab === 'schedule' && 'Schedule Management'}
             </h1>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                  DH
-                </div>
-                <span className="font-medium">John Doe</span>
-              </div>
-            </div>
           </div>
         </header>
 
@@ -111,12 +98,98 @@ function NavItem({ icon, label, isActive, onClick, sidebarOpen }) {
 
 // Dashboard Content
 function DashboardContent() {
+
+  const [expandedRequest, setExpandedRequest] = useState(null);
   const stats = [
     { title: 'Total Students', value: '548', change: '+12%', icon: <Users size={20} className="text-blue-500" /> },
     { title: 'Classes Scheduled', value: '32', change: '+5%', icon: <Calendar size={20} className="text-green-500" /> },
     { title: 'Lab Sessions', value: '16', change: '-2%', icon: <Clock size={20} className="text-purple-500" /> },
     { title: 'Schedule Changes', value: '8', change: '+25%', icon: <ChevronDown size={20} className="text-orange-500" /> },
   ];
+
+   const changeRequests = [
+    { 
+      id: 1,
+      teacher: 'Dr. Smith', 
+      subject: 'Advanced Mathematics', 
+      currentPeriod: '2nd Period (9:30 - 10:20)', 
+      requestedPeriod: '4th Period (11:30 - 12:20)',
+      reason: 'Conflicts with department meeting',
+      priority: 'High',
+      status: 'Pending',
+      submitted: '2 hours ago' 
+    },
+    { 
+      id: 2,
+      teacher: 'Prof. Johnson', 
+      subject: 'Computer Science', 
+      currentPeriod: '5th Period (1:00 - 1:50)', 
+      requestedPeriod: '7th Period (3:00 - 3:50)',
+      reason: 'Need access to computer lab which is occupied during current period',
+      priority: 'Medium',
+      status: 'Under Review',
+      submitted: '1 day ago' 
+    },
+    { 
+      id: 3,
+      teacher: 'Dr. Williams', 
+      subject: 'Physics Lab', 
+      currentPeriod: '3rd Period (10:30 - 11:20)', 
+      requestedPeriod: '6th Period (2:00 - 2:50)',
+      reason: 'Equipment setup requires more time between classes',
+      priority: 'Low',
+      status: 'Approved',
+      submitted: '2 days ago' 
+    },
+    { 
+      id: 4,
+      teacher: 'Ms. Garcia', 
+      subject: 'English Literature', 
+      currentPeriod: '1st Period (8:30 - 9:20)', 
+      requestedPeriod: '3rd Period (10:30 - 11:20)',
+      reason: 'Personal medical appointment',
+      priority: 'High',
+      status: 'Pending',
+      submitted: '3 hours ago' 
+    },
+    { 
+      id: 5,
+      teacher: 'Mr. Thompson', 
+      subject: 'History', 
+      currentPeriod: '6th Period (2:00 - 2:50)', 
+      requestedPeriod: '2nd Period (9:30 - 10:20)',
+      reason: 'Better student engagement in morning hours',
+      priority: 'Medium',
+      status: 'Rejected',
+      submitted: '3 days ago' 
+    }
+  ];
+
+  const toggleRequest = (id) => {
+    if (expandedRequest === id) {
+      setExpandedRequest(null);
+    } else {
+      setExpandedRequest(id);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Approved': return 'text-green-500';
+      case 'Rejected': return 'text-red-500';
+      case 'Under Review': return 'text-blue-500';
+      default: return 'text-orange-500'; // Pending
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'High': return 'bg-red-100 text-red-700';
+      case 'Medium': return 'bg-yellow-100 text-yellow-700';
+      case 'Low': return 'bg-green-100 text-green-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
 
   return (
     <div>
@@ -137,83 +210,178 @@ function DashboardContent() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Recent Schedule Changes</h2>
-            <button className="text-blue-500 text-sm font-medium">View All</button>
-          </div>
-          
-          <div className="space-y-4">
-            {[
-              { teacher: 'Dr. Smith', subject: 'Advanced Mathematics', change: 'Requested room change', time: '2 hours ago' },
-              { teacher: 'Prof. Johnson', subject: 'Computer Science', change: 'Rescheduled to Friday', time: '1 day ago' },
-              { teacher: 'Dr. Williams', subject: 'Physics Lab', change: 'Extended duration by 30 mins', time: '2 days ago' },
-            ].map((item, idx) => (
-              <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">{item.teacher}</p>
-                  <p className="text-sm text-gray-500">{item.subject}</p>
-                  <p className="text-sm text-blue-500">{item.change}</p>
-                </div>
-                <p className="text-xs text-gray-400">{item.time}</p>
-              </div>
-            ))}
+      <div className="bg-white p-6 rounded-lg shadow mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Period Change Requests</h2>
+          <div className="flex space-x-2">
+            <select className="px-3 py-2 border rounded-md text-sm">
+              <option>All Statuses</option>
+              <option>Pending</option>
+              <option>Approved</option>
+              <option>Rejected</option>
+            </select>
+            <select className="px-3 py-2 border rounded-md text-sm">
+              <option>All Priorities</option>
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+            <button className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm">New Request</button>
           </div>
         </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Upcoming Schedule</h2>
-            <button className="text-blue-500 text-sm font-medium">Full Calendar</button>
-          </div>
-          
-          <div className="space-y-3">
-            {[
-              { title: 'CSE-101 Lecture', location: 'Room 301', time: '09:00 - 10:30', date: 'Today' },
-              { title: 'Physics Lab', location: 'Lab B2', time: '11:00 - 13:00', date: 'Today' },
-              { title: 'Mathematics Tutorial', location: 'Room 105', time: '14:00 - 15:30', date: 'Today' },
-              { title: 'Database Systems', location: 'Computer Lab', time: '09:00 - 11:00', date: 'Tomorrow' },
-            ].map((item, idx) => (
-              <div key={idx} className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">{item.title}</p>
-                  <p className="text-sm text-gray-500">{item.location}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">{item.time}</p>
-                  <p className="text-sm text-gray-500">{item.date}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+        
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {changeRequests.map((request) => (
+                <Fragment key={request.id}>
+                  <tr className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-medium">{request.teacher}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">{request.subject}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`${getStatusColor(request.status)} font-medium`}>
+                        {request.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`${getPriorityColor(request.priority)} px-2 py-1 text-xs rounded-full`}>
+                        {request.priority}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {request.submitted}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button 
+                        onClick={() => toggleRequest(request.id)}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        {expandedRequest === request.id ? 
+                          <ChevronDown size={16} /> : 
+                          <ChevronRight size={16} />
+                        }
+                      </button>
+                    </td>
+                  </tr>
+                  {expandedRequest === request.id && (
+                    <tr className="bg-gray-50">
+                      <td colSpan="6" className="px-6 py-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Current Period</p>
+                            <p className="text-sm">{request.currentPeriod}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Requested Period</p>
+                            <p className="text-sm">{request.requestedPeriod}</p>
+                          </div>
+                          <div className="md:col-span-2">
+                            <p className="text-sm font-medium text-gray-500">Reason</p>
+                            <p className="text-sm">{request.reason}</p>
+                          </div>
+                        </div>
+                        <div className="mt-4 flex justify-end space-x-2">
+                          <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">Approve</button>
+                          <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">Reject</button>
+                          <button className="bg-gray-500 text-white px-3 py-1 rounded text-sm">Contact Teacher</button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
+        </div> 
       </div>
-    </div>
   );
 }
 
 // Students Management Content
 function StudentsContent() {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
-  const [selectedYear, setSelectedYear] = useState('All Years');
-  const [selectedSection, setSelectedSection] = useState('All Sections');
+  const decoded = checkTokenExpiration(localStorage.getItem("access_token"));
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    password: "",
+    year: "",
+    section: ""
+  });
 
-  const students = [
-    { id: 'STU001', name: 'Alex Johnson', year: '1st Year', section: 'A', email: 'alex@example.com', phone: '123-456-7890' },
-    { id: 'STU002', name: 'Sarah Williams', year: '1st Year', section: 'B', email: 'sarah@example.com', phone: '123-456-7891' },
-    { id: 'STU003', name: 'Michael Brown', year: '2nd Year', section: 'A', email: 'michael@example.com', phone: '123-456-7892' },
-    { id: 'STU004', name: 'Emma Davis', year: '2nd Year', section: 'B', email: 'emma@example.com', phone: '123-456-7893' },
-    { id: 'STU005', name: 'James Wilson', year: '3rd Year', section: 'A', email: 'james@example.com', phone: '123-456-7894' },
-  ];
+  
+  const [showAddForm, setShowAddForm] = useState(false);
+  const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+  const [selectedYear, setSelectedYear] = useState("1st Year");
+  const [selectedSection, setSelectedSection] = useState("");
+  const [students, setStudents] = useState([]);
+  
+  useEffect(()=> {
+    fetchAPI(`http://127.0.0.1:5000/api/student/${decoded[1].institution_id}`,"GET").then((data)=> {
+      setStudents(data.students)
+    })
+  },[])
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  const handleDeleteRequest = (id)=> {
+    fetchAPI(`http://127.0.0.1:5000/api/student/${id}`, 'DELETE').then(() => {
+  
+        setStudents((students) => students.filter((student) => student.id !== id));
+      }).catch(error => {
+        console.error('Error fetching institutions:', error);
+      });
+  }
+
+  const handleSubmit = async() => {
+    fetchAPI("http://127.0.0.1:5000/api/user/register","POST", {...formData,
+      department_id: decoded[1].department_id,
+      institution_id: decoded[1].institution_id,
+      role: "Student"
+    }).then((data)=> {
+      fetchAPI("http://127.0.0.1:5000/api/student","POST", {...formData,
+        department_id: decoded[1].department_id,
+        institution_id: decoded[1].institution_id,
+        user_id: data.user.id
+      }).then(()=>{
+        setFormData({
+          full_name: "",
+          email: "",
+          password: "",
+          year: "",
+          section: "",
+        });
+        setShowAddForm(false);
+      })
+    })
+  };
 
   return (
     <div>
       <div className="bg-white p-6 rounded-lg shadow mb-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Student Management</h2>
-          <button 
+          <button
             onClick={() => setShowAddForm(!showAddForm)}
             className="flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
@@ -228,31 +396,65 @@ function StudentsContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input type="text" className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input
+                  type="text"
+                  name="full_name"
+                  value={formData.full_name}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
-                <input type="text" className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input type="tel" className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                <select className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  {years.map(year => (
-                    <option key={year} value={year}>{year}</option>
+                <select
+                  name="year"
+                  value={formData.year}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Year</option>
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
-                <select className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select
+                  name="section"
+                  value={formData.section}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Section</option>
                   <option value="A">Section A</option>
                   <option value="B">Section B</option>
                   <option value="C">Section C</option>
@@ -260,13 +462,14 @@ function StudentsContent() {
               </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button 
+              <button
                 onClick={() => setShowAddForm(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
               >
                 Cancel
               </button>
-              <button 
+              <button
+                onClick={handleSubmit}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 Create Account
@@ -274,6 +477,7 @@ function StudentsContent() {
             </div>
           </div>
         )}
+
 
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="flex items-center">
@@ -284,7 +488,6 @@ function StudentsContent() {
                 onChange={(e) => setSelectedYear(e.target.value)}
                 className="appearance-none bg-gray-100 py-2 pl-3 pr-8 rounded border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option>All Years</option>
                 {years.map(year => (
                   <option key={year} value={year}>{year}</option>
                 ))}
@@ -301,10 +504,10 @@ function StudentsContent() {
                 onChange={(e) => setSelectedSection(e.target.value)}
                 className="appearance-none bg-gray-100 py-2 pl-3 pr-8 rounded border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option>All Sections</option>
-                <option>Section A</option>
-                <option>Section B</option>
-                <option>Section C</option>
+                <option value="">All Sections</option>
+                <option value="A">Section A</option>
+                <option value="B">Section B</option>
+                <option value="C">Section C</option>
               </select>
               <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500" />
             </div>
@@ -327,59 +530,54 @@ function StudentsContent() {
                 <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
                 <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section</th>
                 <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                 <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {students.map((student) => (
-                <tr key={student.id} className="hover:bg-gray-50">
-                  <td className="py-3 px-4 whitespace-nowrap">{student.id}</td>
-                  <td className="py-3 px-4 whitespace-nowrap font-medium">{student.name}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">{student.year}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">Section {student.section}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">{student.email}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">{student.phone}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">
-                    <div className="flex gap-2">
-                      <button className="text-blue-600 hover:text-blue-800">Edit</button>
-                      <button className="text-red-600 hover:text-red-800">Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {students
+  .filter((s) => !selectedYear || s.year.includes(selectedYear))
+  .filter((s) => !selectedSection || s.section.includes(selectedSection))
+  .map((student) => (
+    <tr key={student.id} className="hover:bg-gray-50">
+      <td className="py-3 px-4 whitespace-nowrap">{student.id}</td>
+      <td className="py-3 px-4 whitespace-nowrap font-medium">{student.name}</td>
+      <td className="py-3 px-4 whitespace-nowrap">{student.year}</td>
+      <td className="py-3 px-4 whitespace-nowrap">Section {student.section}</td>
+      <td className="py-3 px-4 whitespace-nowrap">{student.email}</td>
+      <td className="py-3 px-4 whitespace-nowrap">
+        <div className="flex gap-2">
+          <button className="text-red-600 hover:text-red-800" onClick={()=> {handleDeleteRequest(student.id)}}>Delete</button>
+        </div>
+      </td>
+    </tr>
+  ))}
             </tbody>
           </table>
         </div>
 
-        <div className="flex justify-between items-center mt-4">
-          <p className="text-sm text-gray-500">Showing 5 of 50 students</p>
-          <div className="flex items-center gap-2">
-            <button className="p-1 rounded border hover:bg-gray-100">
-              <ChevronLeft size={18} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded bg-blue-600 text-white">1</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100">2</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100">3</button>
-            <button className="p-1 rounded border hover:bg-gray-100">
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
 }
 
-// Schedule Management Content
 function ScheduleContent() {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const timeSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'];
   const [selectedYear, setSelectedYear] = useState('1st Year');
   const [selectedSection, setSelectedSection] = useState('Section A');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  
+  // Form states
+  const [subjectName, setSubjectName] = useState('');
+  const [teacherName, setTeacherName] = useState('');
+  const [roomNumber, setRoomNumber] = useState('');
+  const [classType, setClassType] = useState('lecture');
   
   // Sample schedule data
-  const scheduleData = {
+  const [scheduleData, setScheduleData] = useState({
     'Monday': {
       '9:00 AM': { subject: 'Mathematics', teacher: 'Dr. Smith', room: '101', type: 'lecture' },
       '11:00 AM': { subject: 'Physics', teacher: 'Prof. Johnson', room: '204', type: 'lecture' },
@@ -402,10 +600,56 @@ function ScheduleContent() {
       '11:00 AM': { subject: 'Mathematics', teacher: 'Dr. Smith', room: '101', type: 'lecture' },
       '2:00 PM': { subject: 'Computer Lab', teacher: 'Dr. Williams', room: 'Lab 3', type: 'lab' },
     },
+  });
+
+  const openAddModal = (day = '', time = '') => {
+    setSelectedDay(day);
+    setSelectedTime(time);
+    resetFormFields();
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    resetFormFields();
+  };
+
+  const resetFormFields = () => {
+    setSubjectName('');
+    setTeacherName('');
+    setRoomNumber('');
+    setClassType('lecture');
+  };
+
+  const handleAddClass = (e) => {
+    e.preventDefault();
+    
+    if (!subjectName || !teacherName || !roomNumber || !selectedDay || !selectedTime) {
+      alert("Please fill in all fields");
+      return;
+    }
+    
+    const newClass = {
+      subject: subjectName,
+      teacher: teacherName,
+      room: roomNumber,
+      type: classType
+    };
+    
+    setScheduleData(prevData => {
+      const updatedData = {...prevData};
+      if (!updatedData[selectedDay]) {
+        updatedData[selectedDay] = {};
+      }
+      updatedData[selectedDay][selectedTime] = newClass;
+      return updatedData;
+    });
+    
+    closeModal();
   };
 
   return (
-    <div>
+    <div className="relative">
       <div className="bg-white p-6 rounded-lg shadow mb-6">
         <div className="flex flex-wrap items-center justify-between mb-6">
           <h2 className="text-xl font-semibold">Schedule Management</h2>
@@ -445,6 +689,7 @@ function ScheduleContent() {
             </div>
             
             <button 
+              onClick={() => openAddModal()}
               className="flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               <Plus size={18} />
@@ -482,7 +727,10 @@ function ScheduleContent() {
                             </div>
                           </div>
                         ) : (
-                          <button className="w-full h-full min-h-10 flex items-center justify-center text-gray-400 hover:bg-gray-50">
+                          <button 
+                            onClick={() => openAddModal(day, time)}
+                            className="w-full h-full min-h-10 flex items-center justify-center text-gray-400 hover:bg-gray-50"
+                          >
                             <Plus size={18} />
                           </button>
                         )}
@@ -495,43 +743,169 @@ function ScheduleContent() {
           </table>
         </div>
       </div>
-
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-medium mb-4">Schedule Change Requests</h3>
-        <div className="space-y-4">
-          {[
-            { teacher: 'Dr. Smith', subject: 'Mathematics', current: 'Monday, 9:00 AM', requested: 'Monday, 2:00 PM', reason: 'Conflict with department meeting', status: 'pending' },
-            { teacher: 'Prof. Johnson', subject: 'Physics Lab', current: 'Wednesday, 9:00 AM', requested: 'Wednesday, 11:00 AM', reason: 'Equipment availability', status: 'approved' },
-            { teacher: 'Dr. Williams', subject: 'Computer Science', current: 'Monday, 2:00 PM', requested: 'Tuesday, 11:00 AM', reason: 'Personal appointment', status: 'rejected' },
-          ].map((request, idx) => (
-            <div key={idx} className="flex flex-wrap justify-between items-center p-4 bg-gray-50 rounded-lg">
-              <div className="mb-2 md:mb-0">
-                <p className="font-medium">{request.teacher}</p>
-                <p className="text-sm text-gray-600">{request.subject}</p>
-                <p className="text-sm">
-                  <span className="text-gray-500">From:</span> {request.current} <span className="text-gray-500">To:</span> {request.requested}
-                </p>
-                <p className="text-sm text-gray-600">Reason: {request.reason}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                  request.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                </span>
-                {request.status === 'pending' && (
-                  <>
-                    <button className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">Approve</button>
-                    <button className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">Reject</button>
-                  </>
+      
+      {/* Add Class Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-medium">
+                Add New Class {selectedDay && selectedTime ? `(${selectedDay} at ${selectedTime})` : ''}
+              </h3>
+              <button 
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddClass} className="p-4">
+              <div className="space-y-4">
+                {/* Subject Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="flex items-center gap-2">
+                      <BookOpen size={16} />
+                      <span>Subject</span>
+                    </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={subjectName}
+                    onChange={(e) => setSubjectName(e.target.value)}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. Mathematics"
+                  />
+                </div>
+                
+                {/* Teacher Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="flex items-center gap-2">
+                      <User size={16} />
+                      <span>Teacher</span>
+                    </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={teacherName}
+                    onChange={(e) => setTeacherName(e.target.value)}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. Dr. Smith"
+                  />
+                </div>
+                
+                {/* Room Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="flex items-center gap-2">
+                      <Building size={16} />
+                      <span>Room</span>
+                    </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={roomNumber}
+                    onChange={(e) => setRoomNumber(e.target.value)}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. 101 or Lab 2"
+                  />
+                </div>
+                
+                {/* Class Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Class Type</label>
+                  <div className="flex gap-4">
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="lecture"
+                        name="classType"
+                        value="lecture"
+                        checked={classType === 'lecture'}
+                        onChange={(e) => setClassType(e.target.value)}
+                        className="mr-2"
+                      />
+                      <label htmlFor="lecture">Lecture</label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="lab"
+                        name="classType"
+                        value="lab"
+                        checked={classType === 'lab'}
+                        onChange={(e) => setClassType(e.target.value)}
+                        className="mr-2"
+                      />
+                      <label htmlFor="lab">Lab</label>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Day & Time Selectors (only if not pre-selected) */}
+                {(!selectedDay || !selectedTime) && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <div className="flex items-center gap-2">
+                          <Calendar size={16} />
+                          <span>Day</span>
+                        </div>
+                      </label>
+                      <select
+                        value={selectedDay}
+                        onChange={(e) => setSelectedDay(e.target.value)}
+                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select day</option>
+                        {days.map((day) => (
+                          <option key={day} value={day}>{day}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <div className="flex items-center gap-2">
+                          <Clock size={16} />
+                          <span>Time</span>
+                        </div>
+                      </label>
+                      <select
+                        value={selectedTime}
+                        onChange={(e) => setSelectedTime(e.target.value)}
+                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select time</option>
+                        {timeSlots.map((time) => (
+                          <option key={time} value={time}>{time}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
-          ))}
+              
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Add Class
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

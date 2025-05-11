@@ -59,7 +59,7 @@ const SuperAdminDashboard = () => {
     try {
       e.preventDefault();
       let institutionId = showNewAdminForm[1].id;
-      const myuser = await fetchAPI(`http://127.0.0.1:5000/api/user/register`, `POST`, {email: newAdmin.email, password: newAdmin.password, role: 'admin', institution_id: institutionId});
+      const myuser = await fetchAPI(`http://127.0.0.1:5000/api/user/register`, `POST`, {email: newAdmin.email, password: newAdmin.password, role: 'admin', institution_id: institutionId, department_id: null});
       await fetchAPI(`http://127.0.0.1:5000/api/institution/${institutionId}/admin/register`, `POST`, {...newAdmin, user_id: myuser.user.id});
       setShowNewAdminForm(false);
       setNewAdmin({
@@ -94,6 +94,7 @@ const SuperAdminDashboard = () => {
       console.error('Error fetching institutions:', error);
     });
   };
+  
 
   if (loading) return <div className='text-center'>Loading...</div>
 

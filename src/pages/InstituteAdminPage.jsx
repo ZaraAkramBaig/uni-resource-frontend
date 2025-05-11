@@ -13,26 +13,22 @@ export default function AdminDashboard() {
 
   const [departments, setDepartments] = useState([]);
   const [deptHeads, setDeptHeads] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   
   useEffect(()=>{
-    fetchAPI("http://127.0.0.1:5000/api/departments", "GET").then((val)=> {
+    fetchAPI(`http://127.0.0.1:5000/api/departments/${decoded[1].institution_id}`, "GET").then((val)=> {
       setDepartments(val.departments)
       setLoading(false)
     })
-    fetchAPI("http://127.0.0.1:5000/api/department_heads", "GET").then((val)=> {
-      console.log(val.department_heads)
+    fetchAPI(`http://127.0.0.1:5000/api/department_heads/${decoded[1].institution_id}`, "GET").then((val)=> {
       setDeptHeads(val.department_heads)
+    })
+    fetchAPI(`http://127.0.0.1:5000/api/teacher/${decoded[1].institution_id}`, "GET").then((val)=> {
+      setTeachers(val.teachers)
     })
 
   }, [])
   
-  const [teachers, setTeachers] = useState([
-    { id: 1, name: "Dr. James Wilson", email: "j.wilson@example.edu", department: "Computer Science", courses: 3 },
-    { id: 2, name: "Dr. Maria Rodriguez", email: "m.rodriguez@example.edu", department: "Physics", courses: 2 },
-    { id: 3, name: "Prof. Robert Chen", email: "r.chen@example.edu", department: "Mathematics", courses: 4 },
-    { id: 4, name: "Dr. Sarah Johnson", email: "s.johnson@example.edu", department: "Computer Science", courses: 2 },
-    { id: 5, name: "Prof. Michael Lee", email: "m.lee@example.edu", department: "Physics", courses: 3 }
-  ]);
   
   // Form states
   const [formData, setFormData] = useState({
@@ -75,6 +71,23 @@ export default function AdminDashboard() {
 
   }
   
+  const handleDeleteRequestForDeptHead = (id) => {
+      fetchAPI(`http://127.0.0.1:5000/api/department_heads/${id}`, 'DELETE').then(() => {
+  
+        setDeptHeads((deptHeads) => deptHeads.filter((head) => head.id !== id));
+      }).catch(error => {
+        console.error('Error fetching institutions:', error);
+      });
+    };
+  const handleDeleteRequestForTeacherHead = (id) => {
+      fetchAPI(`http://127.0.0.1:5000/api/teacher/${id}`, 'DELETE').then(() => {
+  
+        setTeachers((teachers) => teachers.filter((teacher) => teacher.id !== id));
+      }).catch(error => {
+        console.error('Error fetching institutions:', error);
+      });
+    };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -84,21 +97,24 @@ export default function AdminDashboard() {
         code: formData.code,
         institution_id: decoded[1].institution_id
       };
-      fetchAPI("http://127.0.0.1:5000/api/departments/register", "POST", newDepartment).then(()=>{
-        fetchAPI("http://127.0.0.1:5000/api/departments", "GET").then((depts)=>{
-          setDepartments(depts)
-        })
+      fetchAPI("http://127.0.0.1:5000/api/departments/register", "POST", newDepartment).then((data)=>{
+        setDepartments((prevState)=> ([...prevState, data.dept]))
       }).catch((err)=> alert(err));
     } 
     else if (modalType === 'teacher') {
       const newTeacher = {
-        name: formData.name,
+        full_name: formData.name,
         email: formData.email,
-        department: formData.department,
-        courses: parseInt(formData.courses) || 0
+        institution_id: decoded[1].institution_id,
+        department_id: deptID,
       };
-      // fetchAPI("http://127.0.0.1:5000/api/teachers/register", "POST", newTeacher).catch((err)=> alert(err));
-      setTeachers([...teachers, newTeacher]);
+      fetchAPI("http://127.0.0.1:5000/api/user/register", "POST", {...newTeacher, password: formData.password, role: "Teacher"}).then((val)=>{
+        fetchAPI("http://127.0.0.1:5000/api/teacher/register", "POST", {...newTeacher, user_id: val.user.id}).then((data)=>{
+          setTeachers((prevState)=> ([...prevState, data.teacher]))
+        }).catch((e)=>{
+          alert(e)
+        })
+      })
     } 
     else if (modalType === 'deptHead') {
       
@@ -110,10 +126,8 @@ export default function AdminDashboard() {
       };
 
       fetchAPI("http://127.0.0.1:5000/api/user/register", "POST", {...newDeptHead, password: formData.password, role: "DeptHead"}).then((val)=>{
-        fetchAPI("http://127.0.0.1:5000/api/department_heads/register", "POST", {...newDeptHead, user_id: val.user.id}).then(()=>{
-          fetchAPI("http://127.0.0.1:5000/api/department_heads", "GET").then((data)=>{
-            setDeptHeads(data)
-          })
+        fetchAPI("http://127.0.0.1:5000/api/department_heads/register", "POST", {...newDeptHead, user_id: val.user.id}).then((data)=>{
+          setDeptHeads((prevState)=> ([...prevState, data.new_department_head]))
         }).catch((e)=>{
           alert(e)
         })
@@ -208,9 +222,6 @@ export default function AdminDashboard() {
                       Department
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Courses
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -225,13 +236,10 @@ export default function AdminDashboard() {
                         <div className="text-gray-500">{teacher.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-500">{teacher.department}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-500">{teacher.courses}</div>
+                        <div className="text-gray-500">{(departments.find((dept) => dept.id === teacher.department_id)?.name || 'Unknown')}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button className="text-red-600 hover:text-red-900" >Delete</button>
+                        <button className="text-red-600 hover:text-red-900" onClick={()=>handleDeleteRequestForTeacherHead(teacher.id)}>Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -273,7 +281,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {deptHeads.map((head) => (
+                  {deptHeads && deptHeads.map((head) => (
                     <tr key={head.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">{head.name}</div>
@@ -285,8 +293,9 @@ export default function AdminDashboard() {
                         <div className="text-gray-500">{(departments.find((dept)=> dept.id === head.department_id)).name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button className="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-                        <button className="text-red-600 hover:text-red-900">Remove</button>
+                        <button className="text-red-600 hover:text-red-900" onClick={()=>handleDeleteRequestForDeptHead(head.id)
+
+                        }>Remove</button>
                       </td>
                     </tr>
                   ))}
@@ -325,11 +334,11 @@ export default function AdminDashboard() {
           label: 'Department', 
           type: 'select',
           options: departments.map(dept => ({
+            id: dept.id,
             value: dept.name,
             label: dept.name
           }))
-        },
-        { name: 'courses', label: 'Number of Courses', type: 'number' }
+        }
       ];
     } 
     else if (modalType === 'deptHead') {

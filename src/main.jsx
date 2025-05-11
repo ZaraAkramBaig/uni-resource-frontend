@@ -10,6 +10,8 @@ import WaitingPage from "./pages/WaitingPage";
 import Login from "./pages/Login";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import InstitutionAdminDashboard from "./pages/InstituteAdminPage";
+import DepartmentHeadDashboard from "./pages/deptHead";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const router = createBrowserRouter([
   // Public Routes
@@ -35,7 +37,9 @@ const router = createBrowserRouter([
     },
       {
         path: "superAdmin",
-        element: <SuperAdminDashboard />
+        element:<ProtectedRoute role="superAdmin">
+          <SuperAdminDashboard />
+        </ProtectedRoute>
     },
       {
         path: "StudentsPage",
@@ -44,9 +48,18 @@ const router = createBrowserRouter([
     ,
       {
         path: "institutionAdminPage",
-        element: <InstitutionAdminDashboard />
+        element: <ProtectedRoute role="admin">
+          <InstitutionAdminDashboard />
+        </ProtectedRoute>
     }
-    ]
+    ,
+      {
+        path: "deptHead",
+        element: <ProtectedRoute role="DeptHead">
+          <DepartmentHeadDashboard />
+        </ProtectedRoute>
+    }
+  ]
   },
 ]);
 
