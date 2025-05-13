@@ -1,59 +1,77 @@
-import { useState, Fragment, useEffect } from 'react';
-import { Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, Filter, LogOut, Menu, Plus, Search, Users } from 'lucide-react';
-import {  X, User, Building, BookOpen } from "lucide-react";
-import { fetchAPI } from '../utils/fetchAPI';
-import { checkTokenExpiration } from '../utils/jwt_decode';
+import { useState, Fragment, useEffect } from "react";
+import {
+  Calendar,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Filter,
+  LogOut,
+  Menu,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react";
+import { X, User, Building, BookOpen } from "lucide-react";
+import { fetchAPI } from "../utils/fetchAPI";
+import { checkTokenExpiration } from "../utils/jwt_decode";
 
 // Main App Component
 export default function DepartmentHeadDashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className={`bg-blue-800 text-white ${sidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 flex flex-col`}>
+      <div
+        className={`bg-blue-800 text-white ${
+          sidebarOpen ? "w-64" : "w-20"
+        } transition-all duration-300 flex flex-col`}
+      >
         <div className="p-4 flex items-center justify-between">
           {sidebarOpen ? (
             <h2 className="text-xl font-bold">Edu Portal</h2>
           ) : (
             <h2 className="text-xl font-bold">EP</h2>
           )}
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white p-1 rounded hover:bg-blue-700">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-white p-1 rounded hover:bg-blue-700"
+          >
             <Menu size={20} />
           </button>
         </div>
-        
+
         <div className="mt-8 flex flex-col flex-1">
-          <NavItem 
-            icon={<Calendar size={20} />} 
-            label="Dashboard" 
-            isActive={activeTab === 'dashboard'} 
-            onClick={() => setActiveTab('dashboard')}
+          <NavItem
+            icon={<Calendar size={20} />}
+            label="Dashboard"
+            isActive={activeTab === "dashboard"}
+            onClick={() => setActiveTab("dashboard")}
             sidebarOpen={sidebarOpen}
           />
-          <NavItem 
-            icon={<Users size={20} />} 
-            label="Students" 
-            isActive={activeTab === 'students'} 
-            onClick={() => setActiveTab('students')}
+          <NavItem
+            icon={<Users size={20} />}
+            label="Students"
+            isActive={activeTab === "students"}
+            onClick={() => setActiveTab("students")}
             sidebarOpen={sidebarOpen}
           />
-          <NavItem 
-            icon={<Clock size={20} />} 
-            label="Schedule" 
-            isActive={activeTab === 'schedule'} 
-            onClick={() => setActiveTab('schedule')}
+          <NavItem
+            icon={<Clock size={20} />}
+            label="Schedule"
+            isActive={activeTab === "schedule"}
+            onClick={() => setActiveTab("schedule")}
             sidebarOpen={sidebarOpen}
           />
         </div>
 
         <div className="mt-auto mb-4">
-          <NavItem 
-            icon={<LogOut size={20} />} 
-            label="Logout" 
-            isActive={false} 
-            onClick={() => alert('Logout clicked')}
+          <NavItem
+            icon={<LogOut size={20} />}
+            label="Logout"
+            isActive={false}
+            onClick={() => alert("Logout clicked")}
             sidebarOpen={sidebarOpen}
           />
         </div>
@@ -64,17 +82,17 @@ export default function DepartmentHeadDashboard() {
         <header className="bg-white px-4 py-8 shadow">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-semibold text-gray-800">
-              {activeTab === 'dashboard' && 'Department Head Dashboard'}
-              {activeTab === 'students' && 'Student Management'}
-              {activeTab === 'schedule' && 'Schedule Management'}
+              {activeTab === "dashboard" && "Department Head Dashboard"}
+              {activeTab === "students" && "Student Management"}
+              {activeTab === "schedule" && "Schedule Management"}
             </h1>
           </div>
         </header>
 
         <main className="p-6">
-          {activeTab === 'dashboard' && <DashboardContent />}
-          {activeTab === 'students' && <StudentsContent />}
-          {activeTab === 'schedule' && <ScheduleContent />}
+          {activeTab === "dashboard" && <DashboardContent />}
+          {activeTab === "students" && <StudentsContent />}
+          {activeTab === "schedule" && <ScheduleContent />}
         </main>
       </div>
     </div>
@@ -87,7 +105,7 @@ function NavItem({ icon, label, isActive, onClick, sidebarOpen }) {
     <button
       onClick={onClick}
       className={`flex items-center p-3 my-1 ${
-        isActive ? 'bg-blue-700 font-medium' : 'hover:bg-blue-700'
+        isActive ? "bg-blue-700 font-medium" : "hover:bg-blue-700"
       } rounded-lg transition mx-2`}
     >
       <span className="mr-3">{icon}</span>
@@ -98,71 +116,91 @@ function NavItem({ icon, label, isActive, onClick, sidebarOpen }) {
 
 // Dashboard Content
 function DashboardContent() {
-
   const [expandedRequest, setExpandedRequest] = useState(null);
   const stats = [
-    { title: 'Total Students', value: '548', change: '+12%', icon: <Users size={20} className="text-blue-500" /> },
-    { title: 'Classes Scheduled', value: '32', change: '+5%', icon: <Calendar size={20} className="text-green-500" /> },
-    { title: 'Lab Sessions', value: '16', change: '-2%', icon: <Clock size={20} className="text-purple-500" /> },
-    { title: 'Schedule Changes', value: '8', change: '+25%', icon: <ChevronDown size={20} className="text-orange-500" /> },
+    {
+      title: "Total Students",
+      value: "548",
+      change: "+12%",
+      icon: <Users size={20} className="text-blue-500" />,
+    },
+    {
+      title: "Classes Scheduled",
+      value: "32",
+      change: "+5%",
+      icon: <Calendar size={20} className="text-green-500" />,
+    },
+    {
+      title: "Lab Sessions",
+      value: "16",
+      change: "-2%",
+      icon: <Clock size={20} className="text-purple-500" />,
+    },
+    {
+      title: "Schedule Changes",
+      value: "8",
+      change: "+25%",
+      icon: <ChevronDown size={20} className="text-orange-500" />,
+    },
   ];
 
-   const changeRequests = [
-    { 
+  const changeRequests = [
+    {
       id: 1,
-      teacher: 'Dr. Smith', 
-      subject: 'Advanced Mathematics', 
-      currentPeriod: '2nd Period (9:30 - 10:20)', 
-      requestedPeriod: '4th Period (11:30 - 12:20)',
-      reason: 'Conflicts with department meeting',
-      priority: 'High',
-      status: 'Pending',
-      submitted: '2 hours ago' 
+      teacher: "Dr. Smith",
+      subject: "Advanced Mathematics",
+      currentPeriod: "2nd Period (9:30 - 10:20)",
+      requestedPeriod: "4th Period (11:30 - 12:20)",
+      reason: "Conflicts with department meeting",
+      priority: "High",
+      status: "Pending",
+      submitted: "2 hours ago",
     },
-    { 
+    {
       id: 2,
-      teacher: 'Prof. Johnson', 
-      subject: 'Computer Science', 
-      currentPeriod: '5th Period (1:00 - 1:50)', 
-      requestedPeriod: '7th Period (3:00 - 3:50)',
-      reason: 'Need access to computer lab which is occupied during current period',
-      priority: 'Medium',
-      status: 'Under Review',
-      submitted: '1 day ago' 
+      teacher: "Prof. Johnson",
+      subject: "Computer Science",
+      currentPeriod: "5th Period (1:00 - 1:50)",
+      requestedPeriod: "7th Period (3:00 - 3:50)",
+      reason:
+        "Need access to computer lab which is occupied during current period",
+      priority: "Medium",
+      status: "Under Review",
+      submitted: "1 day ago",
     },
-    { 
+    {
       id: 3,
-      teacher: 'Dr. Williams', 
-      subject: 'Physics Lab', 
-      currentPeriod: '3rd Period (10:30 - 11:20)', 
-      requestedPeriod: '6th Period (2:00 - 2:50)',
-      reason: 'Equipment setup requires more time between classes',
-      priority: 'Low',
-      status: 'Approved',
-      submitted: '2 days ago' 
+      teacher: "Dr. Williams",
+      subject: "Physics Lab",
+      currentPeriod: "3rd Period (10:30 - 11:20)",
+      requestedPeriod: "6th Period (2:00 - 2:50)",
+      reason: "Equipment setup requires more time between classes",
+      priority: "Low",
+      status: "Approved",
+      submitted: "2 days ago",
     },
-    { 
+    {
       id: 4,
-      teacher: 'Ms. Garcia', 
-      subject: 'English Literature', 
-      currentPeriod: '1st Period (8:30 - 9:20)', 
-      requestedPeriod: '3rd Period (10:30 - 11:20)',
-      reason: 'Personal medical appointment',
-      priority: 'High',
-      status: 'Pending',
-      submitted: '3 hours ago' 
+      teacher: "Ms. Garcia",
+      subject: "English Literature",
+      currentPeriod: "1st Period (8:30 - 9:20)",
+      requestedPeriod: "3rd Period (10:30 - 11:20)",
+      reason: "Personal medical appointment",
+      priority: "High",
+      status: "Pending",
+      submitted: "3 hours ago",
     },
-    { 
+    {
       id: 5,
-      teacher: 'Mr. Thompson', 
-      subject: 'History', 
-      currentPeriod: '6th Period (2:00 - 2:50)', 
-      requestedPeriod: '2nd Period (9:30 - 10:20)',
-      reason: 'Better student engagement in morning hours',
-      priority: 'Medium',
-      status: 'Rejected',
-      submitted: '3 days ago' 
-    }
+      teacher: "Mr. Thompson",
+      subject: "History",
+      currentPeriod: "6th Period (2:00 - 2:50)",
+      requestedPeriod: "2nd Period (9:30 - 10:20)",
+      reason: "Better student engagement in morning hours",
+      priority: "Medium",
+      status: "Rejected",
+      submitted: "3 days ago",
+    },
   ];
 
   const toggleRequest = (id) => {
@@ -175,19 +213,27 @@ function DashboardContent() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Approved': return 'text-green-500';
-      case 'Rejected': return 'text-red-500';
-      case 'Under Review': return 'text-blue-500';
-      default: return 'text-orange-500'; // Pending
+      case "Approved":
+        return "text-green-500";
+      case "Rejected":
+        return "text-red-500";
+      case "Under Review":
+        return "text-blue-500";
+      default:
+        return "text-orange-500"; // Pending
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'High': return 'bg-red-100 text-red-700';
-      case 'Medium': return 'bg-yellow-100 text-yellow-700';
-      case 'Low': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case "High":
+        return "bg-red-100 text-red-700";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-700";
+      case "Low":
+        return "bg-green-100 text-green-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
   };
 
@@ -200,7 +246,13 @@ function DashboardContent() {
               <div>
                 <p className="text-sm text-gray-500">{stat.title}</p>
                 <h3 className="text-2xl font-bold mt-2">{stat.value}</h3>
-                <span className={`text-sm ${stat.change.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                <span
+                  className={`text-sm ${
+                    stat.change.startsWith("+")
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`}
+                >
                   {stat.change} since last month
                 </span>
               </div>
@@ -226,20 +278,34 @@ function DashboardContent() {
               <option>Medium</option>
               <option>Low</option>
             </select>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm">New Request</button>
+            <button className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm">
+              New Request
+            </button>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Teacher
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Subject
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Priority
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Submitted
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -253,12 +319,20 @@ function DashboardContent() {
                       <div className="text-sm">{request.subject}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`${getStatusColor(request.status)} font-medium`}>
+                      <span
+                        className={`${getStatusColor(
+                          request.status
+                        )} font-medium`}
+                      >
                         {request.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`${getPriorityColor(request.priority)} px-2 py-1 text-xs rounded-full`}>
+                      <span
+                        className={`${getPriorityColor(
+                          request.priority
+                        )} px-2 py-1 text-xs rounded-full`}
+                      >
                         {request.priority}
                       </span>
                     </td>
@@ -266,14 +340,15 @@ function DashboardContent() {
                       {request.submitted}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
+                      <button
                         onClick={() => toggleRequest(request.id)}
                         className="text-blue-500 hover:text-blue-700"
                       >
-                        {expandedRequest === request.id ? 
-                          <ChevronDown size={16} /> : 
+                        {expandedRequest === request.id ? (
+                          <ChevronDown size={16} />
+                        ) : (
                           <ChevronRight size={16} />
-                        }
+                        )}
                       </button>
                     </td>
                   </tr>
@@ -282,22 +357,34 @@ function DashboardContent() {
                       <td colSpan="6" className="px-6 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <p className="text-sm font-medium text-gray-500">Current Period</p>
+                            <p className="text-sm font-medium text-gray-500">
+                              Current Period
+                            </p>
                             <p className="text-sm">{request.currentPeriod}</p>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-500">Requested Period</p>
+                            <p className="text-sm font-medium text-gray-500">
+                              Requested Period
+                            </p>
                             <p className="text-sm">{request.requestedPeriod}</p>
                           </div>
                           <div className="md:col-span-2">
-                            <p className="text-sm font-medium text-gray-500">Reason</p>
+                            <p className="text-sm font-medium text-gray-500">
+                              Reason
+                            </p>
                             <p className="text-sm">{request.reason}</p>
                           </div>
                         </div>
                         <div className="mt-4 flex justify-end space-x-2">
-                          <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">Approve</button>
-                          <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">Reject</button>
-                          <button className="bg-gray-500 text-white px-3 py-1 rounded text-sm">Contact Teacher</button>
+                          <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">
+                            Approve
+                          </button>
+                          <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">
+                            Reject
+                          </button>
+                          <button className="bg-gray-500 text-white px-3 py-1 rounded text-sm">
+                            Contact Teacher
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -307,8 +394,8 @@ function DashboardContent() {
             </tbody>
           </table>
         </div>
-        </div> 
       </div>
+    </div>
   );
 }
 
@@ -320,21 +407,23 @@ function StudentsContent() {
     email: "",
     password: "",
     year: "",
-    section: ""
+    section: "",
   });
 
-  
   const [showAddForm, setShowAddForm] = useState(false);
   const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
   const [selectedYear, setSelectedYear] = useState("1st Year");
   const [selectedSection, setSelectedSection] = useState("");
   const [students, setStudents] = useState([]);
-  
-  useEffect(()=> {
-    fetchAPI(`http://127.0.0.1:5000/api/student/${decoded[1].institution_id}`,"GET").then((data)=> {
-      setStudents(data.students)
-    })
-  },[])
+
+  useEffect(() => {
+    fetchAPI(
+      `http://127.0.0.1:5000/api/student/${decoded[1].institution_id}`,
+      "GET"
+    ).then((data) => {
+      setStudents(data.students);
+    });
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -344,26 +433,31 @@ function StudentsContent() {
     }));
   };
 
-  const handleDeleteRequest = (id)=> {
-    fetchAPI(`http://127.0.0.1:5000/api/student/${id}`, 'DELETE').then(() => {
-  
-        setStudents((students) => students.filter((student) => student.id !== id));
-      }).catch(error => {
-        console.error('Error fetching institutions:', error);
+  const handleDeleteRequest = (id) => {
+    fetchAPI(`http://127.0.0.1:5000/api/student/${id}`, "DELETE")
+      .then(() => {
+        setStudents((students) =>
+          students.filter((student) => student.id !== id)
+        );
+      })
+      .catch((error) => {
+        console.error("Error fetching institutions:", error);
       });
-  }
+  };
 
-  const handleSubmit = async() => {
-    fetchAPI("http://127.0.0.1:5000/api/user/register","POST", {...formData,
+  const handleSubmit = async () => {
+    fetchAPI("http://127.0.0.1:5000/api/user/register", "POST", {
+      ...formData,
       department_id: decoded[1].department_id,
       institution_id: decoded[1].institution_id,
-      role: "Student"
-    }).then((data)=> {
-      fetchAPI("http://127.0.0.1:5000/api/student","POST", {...formData,
+      role: "Student",
+    }).then((data) => {
+      fetchAPI("http://127.0.0.1:5000/api/student", "POST", {
+        ...formData,
         department_id: decoded[1].department_id,
         institution_id: decoded[1].institution_id,
-        user_id: data.user.id
-      }).then(()=>{
+        user_id: data.user.id,
+      }).then(() => {
         setFormData({
           full_name: "",
           email: "",
@@ -372,8 +466,8 @@ function StudentsContent() {
           section: "",
         });
         setShowAddForm(false);
-      })
-    })
+      });
+    });
   };
 
   return (
@@ -395,7 +489,9 @@ function StudentsContent() {
             <h3 className="text-lg font-medium mb-4">Add New Student</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   name="full_name"
@@ -405,9 +501,11 @@ function StudentsContent() {
                   required
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
                 <input
                   type="email"
                   name="email"
@@ -418,7 +516,9 @@ function StudentsContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
                 <input
                   type="password"
                   name="password"
@@ -429,7 +529,9 @@ function StudentsContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Year
+                </label>
                 <select
                   name="year"
                   value={formData.year}
@@ -446,7 +548,9 @@ function StudentsContent() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Section
+                </label>
                 <select
                   name="section"
                   value={formData.section}
@@ -478,28 +582,32 @@ function StudentsContent() {
           </div>
         )}
 
-
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="flex items-center">
             <span className="text-sm font-medium mr-2">Year:</span>
             <div className="relative">
-              <select 
+              <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
                 className="appearance-none bg-gray-100 py-2 pl-3 pr-8 rounded border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {years.map(year => (
-                  <option key={year} value={year}>{year}</option>
+                {years.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
                 ))}
               </select>
-              <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <ChevronDown
+                size={16}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+              />
             </div>
           </div>
-          
+
           <div className="flex items-center">
             <span className="text-sm font-medium mr-2">Section:</span>
             <div className="relative">
-              <select 
+              <select
                 value={selectedSection}
                 onChange={(e) => setSelectedSection(e.target.value)}
                 className="appearance-none bg-gray-100 py-2 pl-3 pr-8 rounded border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -509,10 +617,13 @@ function StudentsContent() {
                 <option value="B">Section B</option>
                 <option value="C">Section C</option>
               </select>
-              <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <ChevronDown
+                size={16}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+              />
             </div>
           </div>
-          
+
           <div className="flex items-center ml-auto">
             <button className="flex items-center gap-1 text-gray-600 bg-gray-100 px-3 py-2 rounded">
               <Filter size={16} />
@@ -525,84 +636,322 @@ function StudentsContent() {
           <table className="min-w-full bg-white">
             <thead className="bg-gray-50">
               <tr>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ID
+                </th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Year
+                </th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Section
+                </th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {students
-  .filter((s) => !selectedYear || s.year.includes(selectedYear))
-  .filter((s) => !selectedSection || s.section.includes(selectedSection))
-  .map((student) => (
-    <tr key={student.id} className="hover:bg-gray-50">
-      <td className="py-3 px-4 whitespace-nowrap">{student.id}</td>
-      <td className="py-3 px-4 whitespace-nowrap font-medium">{student.name}</td>
-      <td className="py-3 px-4 whitespace-nowrap">{student.year}</td>
-      <td className="py-3 px-4 whitespace-nowrap">Section {student.section}</td>
-      <td className="py-3 px-4 whitespace-nowrap">{student.email}</td>
-      <td className="py-3 px-4 whitespace-nowrap">
-        <div className="flex gap-2">
-          <button className="text-red-600 hover:text-red-800" onClick={()=> {handleDeleteRequest(student.id)}}>Delete</button>
-        </div>
-      </td>
-    </tr>
-  ))}
+                .filter((s) => !selectedYear || s.year.includes(selectedYear))
+                .filter(
+                  (s) => !selectedSection || s.section.includes(selectedSection)
+                )
+                .map((student) => (
+                  <tr key={student.id} className="hover:bg-gray-50">
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      {student.id}
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap font-medium">
+                      {student.name}
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      {student.year}
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      Section {student.section}
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      {student.email}
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <div className="flex gap-2">
+                        <button
+                          className="text-red-600 hover:text-red-800"
+                          onClick={() => {
+                            handleDeleteRequest(student.id);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
-
-        
       </div>
     </div>
   );
 }
 
+
 function ScheduleContent() {
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const timeSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'];
-  const [selectedYear, setSelectedYear] = useState('1st Year');
-  const [selectedSection, setSelectedSection] = useState('Section A');
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const [timeSlots, setTimeSlots] = useState([
+    "9:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "1:00 PM",
+    "2:00 PM",
+    "3:00 PM",
+    "4:00 PM",
+  ]);
+  const [selectedYear, setSelectedYear] = useState("1st Year");
+  const [selectedSection, setSelectedSection] = useState("Section A");
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedDay, setSelectedDay] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
-  
+  const [selectedDay, setSelectedDay] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [timeManagementModalOpen, setTimeManagementModalOpen] = useState(false);
+  const [newTimeSlot, setNewTimeSlot] = useState("");
+
+  // Available teachers list
+  const [teachers, setTeachers] = useState([
+    "Dr. Smith",
+    "Prof. Johnson",
+    "Dr. Williams",
+    "Dr. Brown",
+    "Prof. Davis",
+    "Dr. Taylor",
+    "Prof. Wilson",
+    "Dr. Anderson",
+  ]);
+
   // Form states
-  const [subjectName, setSubjectName] = useState('');
-  const [teacherName, setTeacherName] = useState('');
-  const [roomNumber, setRoomNumber] = useState('');
-  const [classType, setClassType] = useState('lecture');
-  
-  // Sample schedule data
+  const [subjectName, setSubjectName] = useState("");
+  const [teacherName, setTeacherName] = useState("");
+  const [roomNumber, setRoomNumber] = useState("");
+  const [classType, setClassType] = useState("lecture");
+
+  // Sample schedule data - restructured to properly maintain year and section data
   const [scheduleData, setScheduleData] = useState({
-    'Monday': {
-      '9:00 AM': { subject: 'Mathematics', teacher: 'Dr. Smith', room: '101', type: 'lecture' },
-      '11:00 AM': { subject: 'Physics', teacher: 'Prof. Johnson', room: '204', type: 'lecture' },
-      '2:00 PM': { subject: 'Computer Science', teacher: 'Dr. Williams', room: '305', type: 'lab' },
+    "1st Year": {
+      "Section A": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
+      "Section B": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
+      "Section C": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
     },
-    'Tuesday': {
-      '10:00 AM': { subject: 'Chemistry', teacher: 'Dr. Brown', room: '102', type: 'lecture' },
-      '1:00 PM': { subject: 'English', teacher: 'Prof. Davis', room: '203', type: 'lecture' },
+    "2nd Year": {
+      "Section A": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
+      "Section B": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
+      "Section C": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
     },
-    'Wednesday': {
-      '9:00 AM': { subject: 'Physics Lab', teacher: 'Prof. Johnson', room: 'Lab 2', type: 'lab' },
-      '1:00 PM': { subject: 'Mathematics', teacher: 'Dr. Smith', room: '101', type: 'lecture' },
+    "3rd Year": {
+      "Section A": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
+      "Section B": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
+      "Section C": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
     },
-    'Thursday': {
-      '11:00 AM': { subject: 'Computer Science', teacher: 'Dr. Williams', room: '305', type: 'lecture' },
-      '2:00 PM': { subject: 'Chemistry Lab', teacher: 'Dr. Brown', room: 'Lab 1', type: 'lab' },
-    },
-    'Friday': {
-      '9:00 AM': { subject: 'English', teacher: 'Prof. Davis', room: '203', type: 'lecture' },
-      '11:00 AM': { subject: 'Mathematics', teacher: 'Dr. Smith', room: '101', type: 'lecture' },
-      '2:00 PM': { subject: 'Computer Lab', teacher: 'Dr. Williams', room: 'Lab 3', type: 'lab' },
+    "4th Year": {
+      "Section A": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
+      "Section B": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
+      "Section C": {
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+      },
     },
   });
 
-  const openAddModal = (day = '', time = '') => {
+  // Function to check if a teacher is available at the specified time slot
+  const isTeacherAvailable = (teacherToCheck, dayToCheck, timeToCheck) => {
+    // Skip the check if we're editing the same slot
+    if (selectedDay === dayToCheck && selectedTime === timeToCheck) {
+      return true;
+    }
+
+    // Check all years and sections for the given day and time
+    for (const year in scheduleData) {
+      for (const section in scheduleData[year]) {
+        if (scheduleData[year][section][dayToCheck]?.[timeToCheck]?.teacher === teacherToCheck) {
+          return false; // Teacher already booked
+        }
+      }
+    }
+    return true; // Teacher is available
+  };
+
+  // Function to check if a room is available at the specified time slot
+  const isRoomAvailable = (roomToCheck, dayToCheck, timeToCheck) => {
+    // Skip the check if we're editing the same slot
+    if (selectedDay === dayToCheck && selectedTime === timeToCheck) {
+      return true;
+    }
+
+    // Check all years and sections for the given day and time
+    for (const year in scheduleData) {
+      for (const section in scheduleData[year]) {
+        if (scheduleData[year][section][dayToCheck]?.[timeToCheck]?.room === roomToCheck) {
+          return false; // Room already booked
+        }
+      }
+    }
+    return true; // Room is available
+  };
+
+  // Function to handle time slot management
+  const addTimeSlot = () => {
+    if (!newTimeSlot) {
+      alert("Please enter a valid time slot");
+      return;
+    }
+
+    // Check if time slot already exists
+    if (timeSlots.includes(newTimeSlot)) {
+      alert("Time slot already exists");
+      return;
+    }
+
+    // Add new time slot and sort all time slots
+    const updatedTimeSlots = [...timeSlots, newTimeSlot].sort((a, b) => {
+      // Parse the time strings
+      const getTimeValue = (timeStr) => {
+        // Extract hours, minutes, and AM/PM
+        const [timePart, meridiem] = timeStr.split(" ");
+        let [hours, minutes] = timePart.split(":").map(Number);
+
+        // Convert to 24-hour format for comparison
+        if (meridiem === "PM" && hours < 12) hours += 12;
+        if (meridiem === "AM" && hours === 12) hours = 0;
+
+        // Return comparable value (hours * 60 + minutes)
+        return hours * 60 + minutes;
+      };
+
+      return getTimeValue(a) - getTimeValue(b);
+    });
+
+    setTimeSlots(updatedTimeSlots);
+    setNewTimeSlot("");
+  };
+
+  const removeTimeSlot = (slot) => {
+    // Check if the time slot is used in any schedule
+    let isUsed = false;
+
+    for (const year in scheduleData) {
+      for (const section in scheduleData[year]) {
+        for (const day in scheduleData[year][section]) {
+          if (scheduleData[year][section][day][slot]) {
+            isUsed = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (isUsed) {
+      alert(`Cannot remove time slot ${slot} as it is used in the schedule`);
+      return;
+    }
+
+    const updatedTimeSlots = timeSlots.filter((time) => time !== slot);
+    setTimeSlots(updatedTimeSlots);
+  };
+
+  const openAddModal = (day = "", time = "") => {
     setSelectedDay(day);
     setSelectedTime(time);
     resetFormFields();
@@ -615,50 +964,91 @@ function ScheduleContent() {
   };
 
   const resetFormFields = () => {
-    setSubjectName('');
-    setTeacherName('');
-    setRoomNumber('');
-    setClassType('lecture');
+    setSubjectName("");
+    setTeacherName("");
+    setRoomNumber("");
+    setClassType("lecture");
+  };
+
+  const handleEditClass = (day, time) => {
+    const classData = scheduleData[selectedYear][selectedSection][day][time];
+    if (classData) {
+      setSubjectName(classData.subject);
+      setTeacherName(classData.teacher);
+      setRoomNumber(classData.room);
+      setClassType(classData.type);
+      setSelectedDay(day);
+      setSelectedTime(time);
+      setModalOpen(true);
+    }
+  };
+
+  const handleRemoveClass = (day, time) => {
+    if (window.confirm("Are you sure you want to remove this class?")) {
+      setScheduleData((prevData) => {
+        const updatedData = JSON.parse(JSON.stringify(prevData));
+        delete updatedData[selectedYear][selectedSection][day][time];
+        return updatedData;
+      });
+    }
   };
 
   const handleAddClass = (e) => {
     e.preventDefault();
-    
-    if (!subjectName || !teacherName || !roomNumber || !selectedDay || !selectedTime) {
+
+    if (
+      !subjectName ||
+      !teacherName ||
+      !roomNumber ||
+      !selectedDay ||
+      !selectedTime
+    ) {
       alert("Please fill in all fields");
       return;
     }
-    
+
+    // Check if teacher is already booked at this time
+    if (!isTeacherAvailable(teacherName, selectedDay, selectedTime)) {
+      alert(`Teacher ${teacherName} is already booked at this time on ${selectedDay}`);
+      return;
+    }
+
+    // Check if room is already booked at this time
+    if (!isRoomAvailable(roomNumber, selectedDay, selectedTime)) {
+      alert(`Room ${roomNumber} is already booked at this time on ${selectedDay}`);
+      return;
+    }
+
     const newClass = {
       subject: subjectName,
       teacher: teacherName,
       room: roomNumber,
-      type: classType
+      type: classType,
     };
-    
-    setScheduleData(prevData => {
-      const updatedData = {...prevData};
-      if (!updatedData[selectedDay]) {
-        updatedData[selectedDay] = {};
-      }
-      updatedData[selectedDay][selectedTime] = newClass;
+
+    setScheduleData((prevData) => {
+      const updatedData = JSON.parse(JSON.stringify(prevData));
+      updatedData[selectedYear][selectedSection][selectedDay][selectedTime] = newClass;
       return updatedData;
     });
-    
+
     closeModal();
   };
+
+  // Get the current section data based on selected year and section
+  const currentScheduleData = scheduleData[selectedYear]?.[selectedSection] || {};
 
   return (
     <div className="relative">
       <div className="bg-white p-6 rounded-lg shadow mb-6">
         <div className="flex flex-wrap items-center justify-between mb-6">
           <h2 className="text-xl font-semibold">Schedule Management</h2>
-          
+
           <div className="flex flex-wrap gap-4 mt-2 sm:mt-0">
             <div className="flex items-center">
               <span className="text-sm font-medium mr-2">Year:</span>
               <div className="relative">
-                <select 
+                <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value)}
                   className="appearance-none bg-gray-100 py-2 pl-3 pr-8 rounded border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -668,14 +1058,17 @@ function ScheduleContent() {
                   <option>3rd Year</option>
                   <option>4th Year</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <ChevronDown
+                  size={16}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+                />
               </div>
             </div>
-            
+
             <div className="flex items-center">
               <span className="text-sm font-medium mr-2">Section:</span>
               <div className="relative">
-                <select 
+                <select
                   value={selectedSection}
                   onChange={(e) => setSelectedSection(e.target.value)}
                   className="appearance-none bg-gray-100 py-2 pl-3 pr-8 rounded border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -684,16 +1077,27 @@ function ScheduleContent() {
                   <option>Section B</option>
                   <option>Section C</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <ChevronDown
+                  size={16}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+                />
               </div>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => openAddModal()}
               className="flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               <Plus size={18} />
               <span>Add Class</span>
+            </button>
+
+            <button
+              onClick={() => setTimeManagementModalOpen(true)}
+              className="flex items-center gap-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+            >
+              <Clock size={18} />
+              <span>Manage Time Slots</span>
             </button>
           </div>
         </div>
@@ -702,32 +1106,59 @@ function ScheduleContent() {
           <table className="min-w-full bg-white border">
             <thead>
               <tr className="bg-gray-50">
-                <th className="py-3 px-4 border text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                {days.map(day => (
-                  <th key={day} className="py-3 px-4 border text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{day}</th>
+                <th className="py-3 px-4 border text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Time
+                </th>
+                {days.map((day) => (
+                  <th
+                    key={day}
+                    className="py-3 px-4 border text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    {day}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {timeSlots.map(time => (
+              {timeSlots.map((time) => (
                 <tr key={time}>
                   <td className="py-3 px-4 border font-medium">{time}</td>
-                  {days.map(day => {
-                    const session = scheduleData[day]?.[time];
+                  {days.map((day) => {
+                    const session = currentScheduleData[day]?.[time];
                     return (
                       <td key={`${day}-${time}`} className="py-2 px-3 border">
                         {session ? (
-                          <div className={`p-2 rounded ${session.type === 'lab' ? 'bg-blue-100 border-l-4 border-blue-500' : 'bg-green-100 border-l-4 border-green-500'}`}>
+                          <div
+                            className={`p-2 rounded ${
+                              session.type === "lab"
+                                ? "bg-blue-100 border-l-4 border-blue-500"
+                                : "bg-green-100 border-l-4 border-green-500"
+                            }`}
+                          >
                             <p className="font-medium">{session.subject}</p>
-                            <p className="text-sm text-gray-600">{session.teacher}</p>
-                            <p className="text-sm text-gray-600">Room: {session.room}</p>
+                            <p className="text-sm text-gray-600">
+                              {session.teacher}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Room: {session.room}
+                            </p>
                             <div className="mt-1 flex gap-1">
-                              <button className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
-                              <button className="text-xs text-red-600 hover:text-red-800">Remove</button>
+                              <button 
+                                onClick={() => handleEditClass(day, time)}
+                                className="text-xs text-blue-600 hover:text-blue-800"
+                              >
+                                Edit
+                              </button>
+                              <button 
+                                onClick={() => handleRemoveClass(day, time)}
+                                className="text-xs text-red-600 hover:text-red-800"
+                              >
+                                Remove
+                              </button>
                             </div>
                           </div>
                         ) : (
-                          <button 
+                          <button
                             onClick={() => openAddModal(day, time)}
                             className="w-full h-full min-h-10 flex items-center justify-center text-gray-400 hover:bg-gray-50"
                           >
@@ -743,23 +1174,28 @@ function ScheduleContent() {
           </table>
         </div>
       </div>
-      
-      {/* Add Class Modal */}
+
+      {/* Add/Edit Class Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
               <h3 className="text-lg font-medium">
-                Add New Class {selectedDay && selectedTime ? `(${selectedDay} at ${selectedTime})` : ''}
+                {scheduleData[selectedYear]?.[selectedSection]?.[selectedDay]?.[selectedTime] 
+                  ? "Edit Class" 
+                  : "Add New Class"}{" "}
+                {selectedDay && selectedTime
+                  ? `(${selectedDay} at ${selectedTime})`
+                  : ""}
               </h3>
-              <button 
+              <button
                 onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <X size={20} />
               </button>
             </div>
-            
+
             <form onSubmit={handleAddClass} className="p-4">
               <div className="space-y-4">
                 {/* Subject Field */}
@@ -778,8 +1214,8 @@ function ScheduleContent() {
                     placeholder="e.g. Mathematics"
                   />
                 </div>
-                
-                {/* Teacher Field */}
+
+                {/* Teacher Field - Changed to Select */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <div className="flex items-center gap-2">
@@ -787,15 +1223,26 @@ function ScheduleContent() {
                       <span>Teacher</span>
                     </div>
                   </label>
-                  <input
-                    type="text"
-                    value={teacherName}
-                    onChange={(e) => setTeacherName(e.target.value)}
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. Dr. Smith"
-                  />
+                  <div className="relative">
+                    <select
+                      value={teacherName}
+                      onChange={(e) => setTeacherName(e.target.value)}
+                      className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                    >
+                      <option value="">Select teacher</option>
+                      {teachers.map((teacher) => (
+                        <option key={teacher} value={teacher}>
+                          {teacher}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+                    />
+                  </div>
                 </div>
-                
+
                 {/* Room Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -812,10 +1259,12 @@ function ScheduleContent() {
                     placeholder="e.g. 101 or Lab 2"
                   />
                 </div>
-                
+
                 {/* Class Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Class Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Class Type
+                  </label>
                   <div className="flex gap-4">
                     <div className="flex items-center">
                       <input
@@ -823,7 +1272,7 @@ function ScheduleContent() {
                         id="lecture"
                         name="classType"
                         value="lecture"
-                        checked={classType === 'lecture'}
+                        checked={classType === "lecture"}
                         onChange={(e) => setClassType(e.target.value)}
                         className="mr-2"
                       />
@@ -835,7 +1284,7 @@ function ScheduleContent() {
                         id="lab"
                         name="classType"
                         value="lab"
-                        checked={classType === 'lab'}
+                        checked={classType === "lab"}
                         onChange={(e) => setClassType(e.target.value)}
                         className="mr-2"
                       />
@@ -843,7 +1292,7 @@ function ScheduleContent() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Day & Time Selectors (only if not pre-selected) */}
                 {(!selectedDay || !selectedTime) && (
                   <div className="grid grid-cols-2 gap-4">
@@ -861,7 +1310,9 @@ function ScheduleContent() {
                       >
                         <option value="">Select day</option>
                         {days.map((day) => (
-                          <option key={day} value={day}>{day}</option>
+                          <option key={day} value={day}>
+                            {day}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -879,14 +1330,16 @@ function ScheduleContent() {
                       >
                         <option value="">Select time</option>
                         {timeSlots.map((time) => (
-                          <option key={time} value={time}>{time}</option>
+                          <option key={time} value={time}>
+                            {time}
+                          </option>
                         ))}
                       </select>
                     </div>
                   </div>
                 )}
               </div>
-              
+
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   type="button"
@@ -899,10 +1352,126 @@ function ScheduleContent() {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Add Class
+                  {scheduleData[selectedYear]?.[selectedSection]?.[selectedDay]?.[selectedTime] 
+                    ? "Update Class" 
+                    : "Add Class"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Time Slot Management Modal */}
+      {timeManagementModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-medium">Manage Time Slots</h3>
+              <button
+                onClick={() => setTimeManagementModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-4">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Add New Time Slot
+                </label>
+                <div className="flex gap-2">
+                  <div className="flex-1 flex gap-2">
+                    <select
+                      className="w-16 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => {
+                        const hour = e.target.value;
+                        const minutes =
+                          newTimeSlot.split(":")[1]?.split(" ")[0] || "00";
+                        const meridiem = newTimeSlot.split(" ")[1] || "AM";
+                        setNewTimeSlot(`${hour}:${minutes} ${meridiem}`);
+                      }}
+                      value={newTimeSlot.split(":")[0] || ""}
+                    >
+                      <option value="">Hour</option>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      className="w-20 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => {
+                        const hour = newTimeSlot.split(":")[0] || "12";
+                        const meridiem = newTimeSlot.split(" ")[1] || "AM";
+                        setNewTimeSlot(`${hour}:${e.target.value} ${meridiem}`);
+                      }}
+                      value={newTimeSlot.split(":")[1]?.split(" ")[0] || ""}
+                    >
+                      <option value="">Min</option>
+                      {["00", "15", "30", "45"].map((min) => (
+                        <option key={min} value={min}>
+                          {min}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      className="w-16 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => {
+                        const [timePart] = newTimeSlot.split(" ");
+                        setNewTimeSlot(
+                          `${timePart || "12:00"} ${e.target.value}`
+                        );
+                      }}
+                      value={newTimeSlot.split(" ")[1] || ""}
+                    >
+                      <option value="">AM/PM</option>
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={addTimeSlot}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Current Time Slots
+                </h4>
+                <ul className="divide-y border rounded overflow-hidden">
+                  {timeSlots.map((time) => (
+                    <li
+                      key={time}
+                      className="flex justify-between items-center p-3 hover:bg-gray-50"
+                    >
+                      <span>{time}</span>
+                      <button
+                        onClick={() => removeTimeSlot(time)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setTimeManagementModalOpen(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
