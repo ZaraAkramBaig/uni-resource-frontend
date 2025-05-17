@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, redirect, useNavigate } from 'react-router-dom';
 import { fetchAPI } from '../utils/fetchAPI';
 import {checkTokenExpiration} from "../utils/jwt_decode"
+import { ChevronLeft } from 'lucide-react';
 
 
 export default function Login() {
@@ -39,7 +40,10 @@ export default function Login() {
             return navigate("/deptHead")
           }
           if (decoded[1].role === "Teacher") {
-            return navigate("/deptHead")
+            return navigate("/teachersPage")
+          }
+          if (decoded[1].role === "Student") {
+            return navigate("/studentsPage")
           }
         } catch(e) {
           console.log(e)
@@ -57,7 +61,10 @@ export default function Login() {
           <h1 className="text-3xl font-bold text-white">EduScheduler</h1>
           <p className="text-indigo-200 mt-2">Smart Schedule Management System</p>
         </div>
-
+        <Link to="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 pt-6 px-6">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Home
+          </Link>
         {/* Login Form */}
         <div className="p-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">Sign In</h2>

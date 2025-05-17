@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Users, School, BookOpen, Plus, Save, X } from 'lucide-react';
+import { Users, School, BookOpen, Plus, Save, X, LineChart } from 'lucide-react';
 import { fetchAPI } from '../utils/fetchAPI';
 import { checkTokenExpiration } from '../utils/jwt_decode';
+import { Link } from 'react-router-dom';
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
@@ -71,6 +72,29 @@ export default function AdminDashboard() {
 
   }
   
+  const deleteAllUsers = (id) => {
+      fetchAPI(`http://127.0.0.1:5000/api/user/dept/${id}`, 'DELETE').then(()=>{
+        fetchAPI(`http://127.0.0.1:5000/api/departments/${decoded[1].institution_id}`, "GET").then((val)=> {
+      setDepartments(val.departments)
+      setLoading(false)
+    })
+    fetchAPI(`http://127.0.0.1:5000/api/department_heads/${decoded[1].institution_id}`, "GET").then((val)=> {
+      setDeptHeads(val.department_heads)
+    })
+    fetchAPI(`http://127.0.0.1:5000/api/teacher/${decoded[1].institution_id}`, "GET").then((val)=> {
+      setTeachers(val.teachers)
+    })
+      }).catch(error => {
+        console.error('Error fetching departments:', error);
+      });
+    };
+  const deleteUser = (id, condition) => {
+    fetchAPI(`http://127.0.0.1:5000/api/user/${id}`, 'DELETE').catch(error => {
+      console.error('Error fetching:', error);
+    });
+    if (condition === "teacher") setTeachers(teachers.filter((teacher)=> teacher.id !== id))
+    else setDeptHeads(deptHeads.filter((d)=> d.id !== id))
+    };
   const handleDeleteRequestForDeptHead = (id) => {
       fetchAPI(`http://127.0.0.1:5000/api/department_heads/${id}`, 'DELETE').then(() => {
   
@@ -145,10 +169,10 @@ export default function AdminDashboard() {
         if (loading) return <div className='text-center'>Loading ...</div>
         return (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap">
               <h2 className="text-xl font-semibold">Departments</h2>
               <button 
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center my-2"
                 onClick={() => openAddModal('department')}
               >
                 <Plus size={18} className="mr-1" /> Add Department
@@ -176,7 +200,10 @@ export default function AdminDashboard() {
                           <div className="font-medium text-gray-900">{department.name}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button className="text-red-600 hover:text-red-900" onClick={()=> {handleDeleteRequest(department.id)}}>Delete</button>
+                          <button className="text-red-600 hover:text-red-900" onClick={()=> {
+                            handleDeleteRequest(department.id)
+                            deleteAllUsers(department.id)}
+                            }>Delete</button>
                         </td>
                       </tr>
                     ))
@@ -198,10 +225,10 @@ export default function AdminDashboard() {
       case 'teachers':
         return (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap">
               <h2 className="text-xl font-semibold">Teachers</h2>
               <button 
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center my-2"
                 onClick={() => openAddModal('teacher')}
               >
                 <Plus size={18} className="mr-1" /> Add Teacher
@@ -239,7 +266,9 @@ export default function AdminDashboard() {
                         <div className="text-gray-500">{(departments.find((dept) => dept.id === teacher.department_id)?.name || 'Unknown')}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button className="text-red-600 hover:text-red-900" onClick={()=>handleDeleteRequestForTeacherHead(teacher.id)}>Delete</button>
+                        <button className="text-red-600 hover:text-red-900" onClick={()=>{handleDeleteRequestForTeacherHead(teacher.id)
+                          deleteUser(teacher.user_id, "teacher")
+                        }}>Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -252,10 +281,10 @@ export default function AdminDashboard() {
       case 'deptHeads':
         return (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap">
               <h2 className="text-xl font-semibold">Department Heads</h2>
               <button 
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center my-2"
                 onClick={() => openAddModal('deptHead')}
               >
                 <Plus size={18} className="mr-1" /> Assign Department Head
@@ -290,10 +319,13 @@ export default function AdminDashboard() {
                         <div className="text-gray-500">{head.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-500">{(departments.find((dept)=> dept.id === head.department_id)).name}</div>
+                        <div className="text-gray-500">{(departments && departments.find((dept)=> dept.id === head.department_id)).name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button className="text-red-600 hover:text-red-900" onClick={()=>handleDeleteRequestForDeptHead(head.id)
+                        <button className="text-red-600 hover:text-red-900" onClick={()=>{
+                          handleDeleteRequestForDeptHead(head.id)
+                          deleteUser(head.user_id, "head")
+                        }
 
                         }>Remove</button>
                       </td>
@@ -487,13 +519,18 @@ export default function AdminDashboard() {
       </div>
       
       {/* Main Content */}
-      <div className="flex-1">
-        <header className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex-1 overflow-x-scroll">
+        <header className="bg-white shadow flex justify-between items-center py-6 px-8">
+          <div>
             <h1 className="text-2xl font-semibold text-gray-900">
               Admin Dashboard
             </h1>
           </div>
+          <Link to="/Login">
+            <h1 className="font-semibold text-gray-900 cursor-pointer" onClick={()=> localStorage.clear()}>
+              LogOut
+            </h1>
+          </Link>
         </header>
         
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

@@ -11,7 +11,6 @@ const SuperAdminDashboard = () => {
     // Fetch institutions and pending requests from API
 
     fetchAPI('http://127.0.0.1:5000/api/institution', 'GET').then(data => {
-      console.log(data);
       setInstitutions(data);
       setLoading(false);
     }).catch(error => {
@@ -70,7 +69,6 @@ const SuperAdminDashboard = () => {
         adminPassword: ''
       });
       fetchAPI('http://127.0.0.1:5000/api/institution', 'GET').then(data => {
-        console.log(data);
         setInstitutions(data);
       }).catch(error => {
         console.error('Error fetching institutions:', error);
@@ -84,6 +82,11 @@ const SuperAdminDashboard = () => {
     }
   };
 
+  const deleteAllUsers = (id) => {
+    fetchAPI(`http://127.0.0.1:5000/api/user/institution/${id}`, 'DELETE').catch(error => {
+      console.error('Error fetching institutions:', error);
+    });
+  };
   //Handle request rejection
   const handleRejectRequest = (requestId) => {
 
@@ -102,23 +105,12 @@ const SuperAdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-indigo-800 text-white">
+      <div className="lg:w-64 bg-indigo-800 text-white">
         <div className="p-6">
           <h1 className="text-2xl font-bold">EduScheduler</h1>
           <p className="text-indigo-200 text-sm">Super Admin Panel</p>
         </div>
         
-        <div className="absolute bottom-0 left-0 w-64 p-4 bg-indigo-900">
-          <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">
-              SA
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">Super Admin</p>
-              <p className="text-xs text-indigo-300">admin@eduscheduler.com</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Main Content */}
@@ -155,16 +147,16 @@ const SuperAdminDashboard = () => {
                 <h3 className="text-gray-500 text-sm font-medium">System Status</h3>
                 <div className="h-4 w-4 rounded-full bg-green-500"></div>
               </div>
-              <p className="text-3xl font-bold text-gray-800 mt-2">Operational</p>
+              <p className="md:text-3xl font-bold text-gray-800 mt-2">Operational</p>
               <p className="text-gray-500 text-sm mt-2">All services running</p>
             </div>
           </div>
 
           {/* Pending Requests Section */}
           <div className="bg-white rounded-lg shadow mb-8">
-            <div className="border-b px-6 py-4 flex items-center justify-between">
+            <div className="border-b px-6 py-4 flex items-center justify-between flex-wrap">
               <h2 className="text-lg font-semibold text-gray-800">Pending Institution Requests</h2>
-              <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">
+              <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium my-2">
                 {pendingRequests.length} pending
               </span>
             </div>
@@ -220,15 +212,15 @@ const SuperAdminDashboard = () => {
 
           {/* Registered Institutions */}
           <div className="bg-white rounded-lg shadow">
-            <div className="border-b px-6 py-4 flex items-center justify-between">
+            <div className="border-b px-6 py-4 flex items-center justify-between flex-wrap">
               <h2 className="text-lg font-semibold text-gray-800">Registered Institutions</h2>
-              <div className="relative">
+              <div className="relative my-2">
                 <input type="text" onChange={(e)=> {
                   const searchValue = e.target.value.toLowerCase();
                   const filteredInstitutions = institutions.filter(institution => institution.name.toLowerCase().startsWith(searchValue));
                   console.log(filteredInstitutions);
                   setActiveInstitutions(filteredInstitutions);
-                }} placeholder="Filter institutions..." className="px-4 py-2 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+                }} placeholder="Filter institutions..." className="w-[25vw] px-4 py-2 pl-10 overflow-clip border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
                 <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
               </div>
             </div>
@@ -392,7 +384,9 @@ const SuperAdminDashboard = () => {
             </div>
             <div className='p-6 flex items-center justify-end'>
               <button className="py-2 mx-2 px-6 rounded-md border-black border-1" onClick={()=> setModal(false, null)}>Cancel</button>
-              <button className='py-2 mx-2 px-6 rounded-md bg-indigo-600 text-white' onClick={()=> {handleRejectRequest(showModal[1]);
+              <button className='py-2 mx-2 px-6 rounded-md bg-indigo-600 text-white' onClick={()=> {
+                handleRejectRequest(showModal[1]);
+                deleteAllUsers(showModal[1])
                 setModal(false, null)
               }}>Delete</button>
             </div>

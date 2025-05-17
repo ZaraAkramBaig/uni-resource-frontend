@@ -14,12 +14,14 @@ import {
 import { X, User, Building, BookOpen } from "lucide-react";
 import { fetchAPI } from "../utils/fetchAPI";
 import { checkTokenExpiration } from "../utils/jwt_decode";
+import { useNavigate } from "react-router-dom";
 
+let decoded = checkTokenExpiration(localStorage.getItem("access_token"));
 // Main App Component
 export default function DepartmentHeadDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
+  const navigate = useNavigate();
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
@@ -71,14 +73,17 @@ export default function DepartmentHeadDashboard() {
             icon={<LogOut size={20} />}
             label="Logout"
             isActive={false}
-            onClick={() => alert("Logout clicked")}
+            onClick={() => {
+              navigate("/login");
+              localStorage.clear()
+            }}
             sidebarOpen={sidebarOpen}
           />
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-x-scroll">
         <header className="bg-white px-4 py-8 shadow">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-semibold text-gray-800">
@@ -263,22 +268,22 @@ function DashboardContent() {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow mb-8">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 flex-wrap">
           <h2 className="text-lg font-semibold">Period Change Requests</h2>
-          <div className="flex space-x-2">
-            <select className="px-3 py-2 border rounded-md text-sm">
+          <div className="flex space-x-2 flex-wrap">
+            <select className="px-3 py-2 border rounded-md text-sm my-2">
               <option>All Statuses</option>
               <option>Pending</option>
               <option>Approved</option>
               <option>Rejected</option>
             </select>
-            <select className="px-3 py-2 border rounded-md text-sm">
+            <select className="px-3 py-2 border rounded-md text-sm my-2">
               <option>All Priorities</option>
               <option>High</option>
               <option>Medium</option>
               <option>Low</option>
             </select>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm">
+            <button className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm my-2">
               New Request
             </button>
           </div>
@@ -433,6 +438,13 @@ function StudentsContent() {
     }));
   };
 
+  const deleteUser = (id) => {
+    fetchAPI(`http://127.0.0.1:5000/api/user/${id}`, 'DELETE').catch(error => {
+      console.error('Error fetching:', error);
+    });
+    setStudents(students.filter((student)=> student.id !== id))
+    };
+
   const handleDeleteRequest = (id) => {
     fetchAPI(`http://127.0.0.1:5000/api/student/${id}`, "DELETE")
       .then(() => {
@@ -446,29 +458,43 @@ function StudentsContent() {
   };
 
   const handleSubmit = async () => {
-    fetchAPI("http://127.0.0.1:5000/api/user/register", "POST", {
+  fetchAPI("http://127.0.0.1:5000/api/user/register", "POST", {
+    ...formData,
+    department_id: decoded[1].department_id,
+    institution_id: decoded[1].institution_id,
+    role: "Student",
+  }).then((data) => {
+    fetchAPI("http://127.0.0.1:5000/api/student", "POST", {
       ...formData,
       department_id: decoded[1].department_id,
       institution_id: decoded[1].institution_id,
-      role: "Student",
+      user_id: data.user.id,
     }).then((data) => {
-      fetchAPI("http://127.0.0.1:5000/api/student", "POST", {
-        ...formData,
-        department_id: decoded[1].department_id,
-        institution_id: decoded[1].institution_id,
-        user_id: data.user.id,
-      }).then(() => {
-        setFormData({
-          full_name: "",
-          email: "",
-          password: "",
-          year: "",
-          section: "",
-        });
-        setShowAddForm(false);
+      // 👇 Update the students list immediately
+      setStudents((prev) => [
+        ...prev,
+        {
+          id: data.studentData.id,
+          name: data.studentData.full_name,
+          email: data.studentData.email,
+          year: data.studentData.year,
+          section: data.studentData.section,
+          user_id: data.studentData.user_id
+        },
+      ]);
+
+      // 👇 Reset form
+      setFormData({
+        full_name: "",
+        email: "",
+        password: "",
+        year: "",
+        section: "",
       });
+      setShowAddForm(false);
     });
-  };
+  });
+};
 
   return (
     <div>
@@ -685,6 +711,7 @@ function StudentsContent() {
                           className="text-red-600 hover:text-red-800"
                           onClick={() => {
                             handleDeleteRequest(student.id);
+                            deleteUser(student.user_id)
                           }}
                         >
                           Delete
@@ -711,16 +738,8 @@ function ScheduleContent() {
     "Friday",
     "Saturday",
   ];
-  const [timeSlots, setTimeSlots] = useState([
-    "9:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "1:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-    "4:00 PM",
-  ]);
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [timeSlotsWithoutID, setTimeSlotsWithoutID] = useState([]);
   const [selectedYear, setSelectedYear] = useState("1st Year");
   const [selectedSection, setSelectedSection] = useState("Section A");
   const [modalOpen, setModalOpen] = useState(false);
@@ -730,135 +749,57 @@ function ScheduleContent() {
   const [newTimeSlot, setNewTimeSlot] = useState("");
 
   // Available teachers list
-  const [teachers, setTeachers] = useState([
-    "Dr. Smith",
-    "Prof. Johnson",
-    "Dr. Williams",
-    "Dr. Brown",
-    "Prof. Davis",
-    "Dr. Taylor",
-    "Prof. Wilson",
-    "Dr. Anderson",
-  ]);
+  const [names, setNames] = useState([]);
 
-  // Form states
-  const [subjectName, setSubjectName] = useState("");
-  const [teacherName, setTeacherName] = useState("");
-  const [roomNumber, setRoomNumber] = useState("");
-  const [classType, setClassType] = useState("lecture");
-
-  // Sample schedule data - restructured to properly maintain year and section data
+  // State for schedule data from API
   const [scheduleData, setScheduleData] = useState({
-    "1st Year": {
-      "Section A": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-      "Section B": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-      "Section C": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-    },
-    "2nd Year": {
-      "Section A": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-      "Section B": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-      "Section C": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-    },
-    "3rd Year": {
-      "Section A": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-      "Section B": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-      "Section C": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-    },
-    "4th Year": {
-      "Section A": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-      "Section B": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-      "Section C": {
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-      },
-    },
+    "1st Year": { "Section A": {}, "Section B": {}, "Section C": {} },
+      "2nd Year": { "Section A": {}, "Section B": {}, "Section C": {} },
+      "3rd Year": { "Section A": {}, "Section B": {}, "Section C": {} },
+      "4th Year": { "Section A": {}, "Section B": {}, "Section C": {} }
   });
+
+ 
+
+  // Fetch teachers and schedule data
+  useEffect(() => {
+    // Fetch teachers
+    fetchAPI(`http://127.0.0.1:5000/api/teacher/${decoded[1].institution_id}`, "GET")
+      .then((val) => {
+        setNames(val.teachers.map((teacher) => teacher.name));
+      })
+      .catch(error => console.error("Error fetching teachers:", error));
+    
+    // Fetch schedule data
+    fetchAPI(`http://127.0.0.1:5000/api/schedule/${decoded[1].institution_id}/${decoded[1].department_id}`, "GET")
+      .then((val) => {
+        console.log(val)
+        setScheduleData(val);
+      })
+      .catch(error => console.error("Error fetching schedule:", error));
+    fetchAPI(`http://127.0.0.1:5000/api/time/${decoded[1].institution_id}/${decoded[1].department_id}`, "GET")
+      .then((val) => {
+        let list1 = [];
+        let list2 = [];
+        val.times.forEach(element => {
+          list1.push([element.id, element.time]);
+          list2.push(element.time);
+        });
+        setTimeSlots(list1);
+        setTimeSlotsWithoutID(list2);
+      })
+      .catch(error => console.error("Error fetching schedule:", error));
+  }, []);
+
 
   // Function to check if a teacher is available at the specified time slot
   const isTeacherAvailable = (teacherToCheck, dayToCheck, timeToCheck) => {
     // Skip the check if we're editing the same slot
-    if (selectedDay === dayToCheck && selectedTime === timeToCheck) {
+    if (
+      selectedDay === dayToCheck && 
+      selectedTime === timeToCheck && 
+      scheduleData[selectedYear]?.[selectedSection]?.[selectedDay]?.[selectedTime]?.teacher === teacherToCheck
+    ) {
       return true;
     }
 
@@ -873,10 +814,37 @@ function ScheduleContent() {
     return true; // Teacher is available
   };
 
+  const postSchedule = (year, section) => {
+    if (!year || !section) {
+      alert("Please select a year, section, and day to post.");
+      return;
+    }
+
+    const daySchedule = scheduleData[year]?.[section];
+    if (!daySchedule || Object.keys(daySchedule).length === 0) {
+      alert("No classes to post for this day.");
+      return;
+    }
+
+    fetchAPI(`http://127.0.0.1:5000/api/schedule/${year}/${section}`, "POST", daySchedule)
+      .then((data) => {
+        console.log("Posted schedule:", data);
+        alert("Schedule successfully posted!");
+      })
+      .catch((e) => {
+        console.error("Error posting schedule:", e);
+        alert("Failed to post schedule. Please try again.");
+      });
+  };
+
   // Function to check if a room is available at the specified time slot
   const isRoomAvailable = (roomToCheck, dayToCheck, timeToCheck) => {
     // Skip the check if we're editing the same slot
-    if (selectedDay === dayToCheck && selectedTime === timeToCheck) {
+    if (
+      selectedDay === dayToCheck && 
+      selectedTime === timeToCheck && 
+      scheduleData[selectedYear]?.[selectedSection]?.[selectedDay]?.[selectedTime]?.room === roomToCheck
+    ) {
       return true;
     }
 
@@ -891,70 +859,66 @@ function ScheduleContent() {
     return true; // Room is available
   };
 
+  // Function to get available teachers for a specific day and time
+  const getAvailableTeachers = (dayToCheck, timeToCheck) => {
+    // If we're editing, include the current teacher in the available list
+    const currentTeacher = scheduleData[selectedYear]?.[selectedSection]?.[dayToCheck]?.[timeToCheck]?.teacher;
+    
+    return names.filter(teacher => {
+      if (currentTeacher === teacher) {
+        return true; // Include current teacher when editing
+      }
+      return isTeacherAvailable(teacher, dayToCheck, timeToCheck);
+    });
+  };
+
   // Function to handle time slot management
   const addTimeSlot = () => {
-    if (!newTimeSlot) {
-      alert("Please enter a valid time slot");
-      return;
-    }
+    console.log(newTimeSlot)
+  if (!newTimeSlot) {
+    alert("Please enter a valid time slot");
+    return;
+  }
 
-    // Check if time slot already exists
-    if (timeSlots.includes(newTimeSlot)) {
-      alert("Time slot already exists");
-      return;
-    }
+  // Check if time slot already exists
+  if (timeSlots.includes(newTimeSlot)) {
+    alert("Time slot already exists");
+    return;
+  }
 
-    // Add new time slot and sort all time slots
-    const updatedTimeSlots = [...timeSlots, newTimeSlot].sort((a, b) => {
-      // Parse the time strings
-      const getTimeValue = (timeStr) => {
-        // Extract hours, minutes, and AM/PM
-        const [timePart, meridiem] = timeStr.split(" ");
-        let [hours, minutes] = timePart.split(":").map(Number);
+  const getTimeValue = (timeStr) => {
+    // if (typeof timeStr !== "string") {
+    //   console.error("Invalid timeStr:", timeStr);
+    //   return Infinity;
+    // }
 
-        // Convert to 24-hour format for comparison
-        if (meridiem === "PM" && hours < 12) hours += 12;
-        if (meridiem === "AM" && hours === 12) hours = 0;
+    const [timePart, meridiem] = timeStr.split(" ");
+    let [hours, minutes] = timePart.split(":").map(Number);
 
-        // Return comparable value (hours * 60 + minutes)
-        return hours * 60 + minutes;
-      };
+    if (meridiem === "PM" && hours < 12) hours += 12;
+    if (meridiem === "AM" && hours === 12) hours = 0;
 
-      return getTimeValue(a) - getTimeValue(b);
-    });
-
-    setTimeSlots(updatedTimeSlots);
-    setNewTimeSlot("");
+    return hours * 60 + minutes;
   };
 
-  const removeTimeSlot = (slot) => {
-    // Check if the time slot is used in any schedule
-    let isUsed = false;
-
-    for (const year in scheduleData) {
-      for (const section in scheduleData[year]) {
-        for (const day in scheduleData[year][section]) {
-          if (scheduleData[year][section][day][slot]) {
-            isUsed = true;
-            break;
-          }
-        }
-      }
-    }
-
-    if (isUsed) {
-      alert(`Cannot remove time slot ${slot} as it is used in the schedule`);
-      return;
-    }
-
-    const updatedTimeSlots = timeSlots.filter((time) => time !== slot);
-    setTimeSlots(updatedTimeSlots);
-  };
-
-  const openAddModal = (day = "", time = "") => {
+  const updatedTimeSlots = [...timeSlotsWithoutID, newTimeSlot]
+  console.log(updatedTimeSlots)
+  setTimeSlotsWithoutID(updatedTimeSlots);
+  setNewTimeSlot("");
+};
+  const [timeID, setTimeId] = useState(null);
+  const openAddModal = (day = "", time = "", time_ID) => {
     setSelectedDay(day);
     setSelectedTime(time);
+    if (time_ID) setTimeId(time_ID);
     resetFormFields();
+    
+    // If day and time are provided, reset the teacher dropdown to only show available teachers
+    if (day && time) {
+      // Set default teacher to empty to force selection of available teacher
+      setTeacherName("");
+    }
+    
     setModalOpen(true);
   };
 
@@ -962,6 +926,60 @@ function ScheduleContent() {
     setModalOpen(false);
     resetFormFields();
   };
+  const publishTimeSlot = () => {
+    fetchAPI(`http://127.0.0.1:5000/api/time/${decoded[1].institution_id}/${decoded[1].department_id}`, "POST", timeSlotsWithoutID)
+      .then((data) => {
+        setTimeSlots((prevState)=> ([...prevState, [data.time.id, data.time.time]]));
+      })
+      .catch((e) => {
+        console.error("Error posting schedule:", e);
+        alert("Failed to post schedule. Please try again.");
+      });
+  }
+  const DeleteTimeSlot = (id,name) => {
+  fetchAPI(`http://127.0.0.1:5000/api/time/${id}`, "DELETE")
+    .then(() => {
+      setTimeSlots((prevState) => prevState.filter((p) => p[0] !== id));
+      setTimeSlotsWithoutID((prevState) => prevState.filter((p) => p !== name));
+    })
+    .catch((e) => {
+      console.error("Error deleting time:", e);
+      alert("Failed to delete time. Please try again.");
+    });
+
+  fetchAPI(`http://127.0.0.1:5000/api/timeSlot/${id}`, "DELETE")
+    .then(() => {
+      const time = timeSlots.find((t) => t[0] === id); // Use `find` instead of `filter`
+      if (!time) return;
+
+      const timeKey = time[1]; // Assuming this is the time identifier
+
+      setScheduleData((prevState) => {
+        const newState = { ...prevState };
+        if (
+          newState[selectedYear] &&
+          newState[selectedYear][selectedSection] &&
+          newState[selectedYear][selectedSection][selectedDay]
+        ) {
+          newState[selectedYear][selectedSection][selectedDay][timeKey] = {};
+        }
+        return newState;
+      });
+    })
+    .catch((e) => {
+      console.error("Error deleting timeSlot:", e);
+      alert("Failed to delete time slot. Please try again.");
+    });
+};
+  console.log(scheduleData)
+  console.log(timeSlots)
+  console.log(timeSlotsWithoutID)
+
+  // Form states
+  const [subjectName, setSubjectName] = useState("");
+  const [teacherName, setTeacherName] = useState("");
+  const [roomNumber, setRoomNumber] = useState("");
+  const [classType, setClassType] = useState("lecture");
 
   const resetFormFields = () => {
     setSubjectName("");
@@ -995,14 +1013,7 @@ function ScheduleContent() {
 
   const handleAddClass = (e) => {
     e.preventDefault();
-
-    if (
-      !subjectName ||
-      !teacherName ||
-      !roomNumber ||
-      !selectedDay ||
-      !selectedTime
-    ) {
+    if (!subjectName || !teacherName || !roomNumber || !selectedDay || !selectedTime) {
       alert("Please fill in all fields");
       return;
     }
@@ -1018,25 +1029,43 @@ function ScheduleContent() {
       alert(`Room ${roomNumber} is already booked at this time on ${selectedDay}`);
       return;
     }
-
     const newClass = {
       subject: subjectName,
       teacher: teacherName,
       room: roomNumber,
       type: classType,
+      department_id: decoded[1].department_id,
+      institution_id: decoded[1].institution_id,
+      time_ID: timeID
     };
-
     setScheduleData((prevData) => {
       const updatedData = JSON.parse(JSON.stringify(prevData));
+      
+      // Ensure the structure exists
+      if (!updatedData[selectedYear]) updatedData[selectedYear] = {};
+      if (!updatedData[selectedYear][selectedSection]) updatedData[selectedYear][selectedSection] = {};
+      if (!updatedData[selectedYear][selectedSection][selectedDay]) updatedData[selectedYear][selectedSection][selectedDay] = {};
+      
+      // Add the class
       updatedData[selectedYear][selectedSection][selectedDay][selectedTime] = newClass;
       return updatedData;
     });
-
+    
     closeModal();
   };
-
-  // Get the current section data based on selected year and section
-  const currentScheduleData = scheduleData[selectedYear]?.[selectedSection] || {};
+  // Safely get current schedule data for selected year and section
+  const getCurrentScheduleData = () => {
+    if (!scheduleData[selectedYear]) return {};
+    if (!scheduleData[selectedYear][selectedSection]) return {};
+    return scheduleData[selectedYear][selectedSection];
+  };
+  
+  // Get current section data based on selected year and section
+  const currentScheduleData = getCurrentScheduleData();
+  // Get available teachers for the selected day and time
+  const availableTeachers = selectedDay && selectedTime 
+    ? getAvailableTeachers(selectedDay, selectedTime) 
+    : names;
 
   return (
     <div className="relative">
@@ -1122,9 +1151,18 @@ function ScheduleContent() {
             <tbody>
               {timeSlots.map((time) => (
                 <tr key={time}>
-                  <td className="py-3 px-4 border font-medium">{time}</td>
+                  <td className="py-3 px-4 border font-medium">
+                    <span>{time[1]}</span>
+                    <button
+                        onClick={() => DeleteTimeSlot(time[0], time[1])}
+                        className="text-red-600 hover:text-red-800 px-6"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                  </td>
                   {days.map((day) => {
-                    const session = currentScheduleData[day]?.[time];
+                    // Safely access the session data
+                    const session = currentScheduleData[day]?.[time[1]];
                     return (
                       <td key={`${day}-${time}`} className="py-2 px-3 border">
                         {session ? (
@@ -1135,22 +1173,22 @@ function ScheduleContent() {
                                 : "bg-green-100 border-l-4 border-green-500"
                             }`}
                           >
-                            <p className="font-medium">{session.subject}</p>
+                            <p className="font-medium">{session.subject || "No Subject"}</p>
                             <p className="text-sm text-gray-600">
-                              {session.teacher}
+                              {session.teacher || "No Teacher"}
                             </p>
                             <p className="text-sm text-gray-600">
-                              Room: {session.room}
+                              Room: {session.room || "No Room"}
                             </p>
                             <div className="mt-1 flex gap-1">
                               <button 
-                                onClick={() => handleEditClass(day, time)}
+                                onClick={() => handleEditClass(day, time[1])}
                                 className="text-xs text-blue-600 hover:text-blue-800"
                               >
                                 Edit
                               </button>
                               <button 
-                                onClick={() => handleRemoveClass(day, time)}
+                                onClick={() => handleRemoveClass(day, time[1])}
                                 className="text-xs text-red-600 hover:text-red-800"
                               >
                                 Remove
@@ -1159,7 +1197,7 @@ function ScheduleContent() {
                           </div>
                         ) : (
                           <button
-                            onClick={() => openAddModal(day, time)}
+                            onClick={() => openAddModal(day, time[1], time[0])}
                             className="w-full h-full min-h-10 flex items-center justify-center text-gray-400 hover:bg-gray-50"
                           >
                             <Plus size={18} />
@@ -1172,6 +1210,14 @@ function ScheduleContent() {
               ))}
             </tbody>
           </table>
+          <div className="flex justify-end p-6">
+            <button 
+              className="flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" 
+              onClick={() => postSchedule(selectedYear, selectedSection)}
+            >
+              Post Schedule
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1215,12 +1261,12 @@ function ScheduleContent() {
                   />
                 </div>
 
-                {/* Teacher Field - Changed to Select */}
+                {/* Teacher Field - Changed to only show available teachers */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <div className="flex items-center gap-2">
                       <User size={16} />
-                      <span>Teacher</span>
+                      <span>Teacher {selectedDay && selectedTime ? "(Only showing available teachers)" : ""}</span>
                     </div>
                   </label>
                   <div className="relative">
@@ -1228,9 +1274,10 @@ function ScheduleContent() {
                       value={teacherName}
                       onChange={(e) => setTeacherName(e.target.value)}
                       className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                      disabled={availableTeachers.length === 0}
                     >
                       <option value="">Select teacher</option>
-                      {teachers.map((teacher) => (
+                      {availableTeachers.map((teacher) => (
                         <option key={teacher} value={teacher}>
                           {teacher}
                         </option>
@@ -1241,6 +1288,11 @@ function ScheduleContent() {
                       className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
                     />
                   </div>
+                  {selectedDay && selectedTime && availableTeachers.length === 0 && (
+                    <p className="text-red-500 text-sm mt-1">
+                      No teachers available at this time. All are already scheduled.
+                    </p>
+                  )}
                 </div>
 
                 {/* Room Field */}
@@ -1305,7 +1357,13 @@ function ScheduleContent() {
                       </label>
                       <select
                         value={selectedDay}
-                        onChange={(e) => setSelectedDay(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedDay(e.target.value);
+                          // Reset teacher on day change to ensure only available teachers are shown
+                          if (selectedTime) {
+                            setTeacherName("");
+                          }
+                        }}
                         className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select day</option>
@@ -1325,13 +1383,19 @@ function ScheduleContent() {
                       </label>
                       <select
                         value={selectedTime}
-                        onChange={(e) => setSelectedTime(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedTime(e.target.value);
+                          // Reset teacher on time change to ensure only available teachers are shown
+                          if (selectedDay) {
+                            setTeacherName("");
+                          }
+                        }}
                         className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select time</option>
                         {timeSlots.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
+                          <option key={time[0]} value={time[1]}>
+                            {time[1]}
                           </option>
                         ))}
                       </select>
@@ -1351,6 +1415,11 @@ function ScheduleContent() {
                 <button
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  disabled={selectedDay && selectedTime && availableTeachers.length === 0}
+                  onClick={()=> {
+                    const tID = timeSlots.filter((t)=> t[1] === selectedTime)
+                    setTimeId(tID[0][0])
+                  }}
                 >
                   {scheduleData[selectedYear]?.[selectedSection]?.[selectedDay]?.[selectedTime] 
                     ? "Update Class" 
@@ -1446,26 +1515,23 @@ function ScheduleContent() {
                   Current Time Slots
                 </h4>
                 <ul className="divide-y border rounded overflow-hidden">
-                  {timeSlots.map((time) => (
-                    <li
+                  {timeSlotsWithoutID.map((time) => (
+                    (<li
                       key={time}
                       className="flex justify-between items-center p-3 hover:bg-gray-50"
                     >
                       <span>{time}</span>
-                      <button
-                        onClick={() => removeTimeSlot(time)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </li>
+                    
+                    </li>)
                   ))}
                 </ul>
               </div>
 
               <div className="mt-6 flex justify-end">
                 <button
-                  onClick={() => setTimeManagementModalOpen(false)}
+                  onClick={() => {setTimeManagementModalOpen(false)
+                    publishTimeSlot();
+                  }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
                   Done

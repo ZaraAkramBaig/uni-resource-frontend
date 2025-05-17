@@ -9,6 +9,7 @@ import icon3 from '../assets/notification.svg';
 import {Users, Clock, CheckCircle, Settings } from 'lucide-react';
 import Footer from '../components/Footer';
 import Navbar from '../components/navbar';
+import { Link } from 'react-router-dom';
 
 export default function EducationalSchedulingLanding() {
   return (
@@ -26,9 +27,9 @@ export default function EducationalSchedulingLanding() {
               The easiest way to manage class and lab allocations for students and teachers. Perfect solution for educational institutions.
             </p>
             <div className="mt-8">
-              <a href="#" className="px-6 py-3 text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              <Link to="/register" className="px-6 py-3 text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                 Get Started
-              </a>
+              </Link>
             </div>
           </div>
           <div className="mt-12 lg:mt-0 flex justify-center">
@@ -154,7 +155,6 @@ export default function EducationalSchedulingLanding() {
               <p className="mt-2 text-gray-500">
                 Create and manage multiple institutions with customized settings and user roles.
               </p>
-              <a href="#" className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium inline-block">Learn More</a>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
@@ -167,7 +167,6 @@ export default function EducationalSchedulingLanding() {
               <p className="mt-2 text-gray-500">
                 Create, edit, and manage class and lab schedules with conflict detection.
               </p>
-              <a href="#" className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium inline-block">Learn More</a>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
@@ -180,7 +179,6 @@ export default function EducationalSchedulingLanding() {
               <p className="mt-2 text-gray-500">
                 Define user roles with specific permissions and access levels.
               </p>
-              <a href="#" className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium inline-block">Learn More</a>
             </div>
           </div>
 
@@ -235,12 +233,9 @@ export default function EducationalSchedulingLanding() {
             Join thousands of educational institutions already using our platform to manage their schedules efficiently.
           </p>
           <div className="mt-8">
-            <a href="#" className="px-6 py-3 text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-              Get Started Free
-            </a>
-            <a href="#" className="ml-4 px-6 py-3 text-base font-medium rounded-md text-blue-600 bg-white border border-blue-200 hover:bg-blue-50">
-              Request Demo
-            </a>
+            <Link to="/register" className="px-6 py-3 text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                Get Started
+              </Link>
           </div>
         </div>
       </div>
