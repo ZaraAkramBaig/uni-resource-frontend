@@ -7,6 +7,7 @@ import { checkTokenExpiration } from "../utils/jwt_decode";
 import { fetchAPI } from "../utils/fetchAPI";
 import html2pdf from 'html2pdf.js';
 import { Link } from "react-router-dom";
+import {getTimeValue} from "../utils/sortTime"
 export default function StudentsPage() {
   
   const decoded = checkTokenExpiration(localStorage.getItem("access_token"));
@@ -19,6 +20,7 @@ export default function StudentsPage() {
     "Thursday",
     "Friday",
     "Saturday",
+    "Sunday"
   ];
   
   const [timeSlots, setTimeSlots] = useState([]);
@@ -54,7 +56,7 @@ export default function StudentsPage() {
                 val.times.forEach(element => {
                   list.push(element.time);
                 });
-                setTimeSlots(list);
+                setTimeSlots(list.sort((a, b) => getTimeValue(a) - getTimeValue(b)));
               })
               .catch(error => console.error("Error fetching schedule:", error));
         

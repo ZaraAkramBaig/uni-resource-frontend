@@ -12,6 +12,7 @@ import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import InstitutionAdminDashboard from "./pages/InstituteAdminPage";
 import DepartmentHeadDashboard from "./pages/deptHead";
 import ProtectedRoute from "./components/ProtectedRoute";
+import TeachersPage from "./pages/TeachersPage";
 
 const router = createBrowserRouter([
   // Public Routes
@@ -51,7 +52,7 @@ const router = createBrowserRouter([
       {
         path: "teachersPage",
         element: <ProtectedRoute role="Teacher">
-          <StudentsPage />
+          <TeachersPage />
         </ProtectedRoute>
     }
     ,

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { School,  Bell,  Search,  Check, X,  } from 'lucide-react';
+import { School,  Bell,  Search,  Check, X  } from 'lucide-react';
 import { fetchAPI } from '../utils/fetchAPI';
+import { Link } from 'react-router-dom';
 
 const SuperAdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -118,7 +119,10 @@ const SuperAdminDashboard = () => {
         <header className="bg-white shadow-sm">
           <div className="mx-auto px-4 py-4 flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
-            
+            <Link to="/Login"><p className="font-bold" onClick={()=> {
+              localStorage.clear()
+            }}>LogOut</p>
+            </Link>
           </div>
         </header>
 
@@ -352,7 +356,6 @@ const SuperAdminDashboard = () => {
                   onChange={handleChange}
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">Admin will be prompted to change password on first login</p>
               </div>
               <div className="flex justify-end space-x-3">
                 <button

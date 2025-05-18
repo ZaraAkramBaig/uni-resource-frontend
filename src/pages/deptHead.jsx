@@ -15,8 +15,8 @@ import { X, User, Building, BookOpen } from "lucide-react";
 import { fetchAPI } from "../utils/fetchAPI";
 import { checkTokenExpiration } from "../utils/jwt_decode";
 import { useNavigate } from "react-router-dom";
+import {getTimeValue} from "../utils/sortTime"
 
-let decoded = checkTokenExpiration(localStorage.getItem("access_token"));
 // Main App Component
 export default function DepartmentHeadDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -122,92 +122,20 @@ function NavItem({ icon, label, isActive, onClick, sidebarOpen }) {
 // Dashboard Content
 function DashboardContent() {
   const [expandedRequest, setExpandedRequest] = useState(null);
-  const stats = [
-    {
-      title: "Total Students",
-      value: "548",
-      change: "+12%",
-      icon: <Users size={20} className="text-blue-500" />,
-    },
-    {
-      title: "Classes Scheduled",
-      value: "32",
-      change: "+5%",
-      icon: <Calendar size={20} className="text-green-500" />,
-    },
-    {
-      title: "Lab Sessions",
-      value: "16",
-      change: "-2%",
-      icon: <Clock size={20} className="text-purple-500" />,
-    },
-    {
-      title: "Schedule Changes",
-      value: "8",
-      change: "+25%",
-      icon: <ChevronDown size={20} className="text-orange-500" />,
-    },
-  ];
+  const decoded = checkTokenExpiration(localStorage.getItem("access_token"));
+  const [changeRequests, setChangeRequests] = useState([]);
+  const [res, setRes] = useState("")
 
-  const changeRequests = [
-    {
-      id: 1,
-      teacher: "Dr. Smith",
-      subject: "Advanced Mathematics",
-      currentPeriod: "2nd Period (9:30 - 10:20)",
-      requestedPeriod: "4th Period (11:30 - 12:20)",
-      reason: "Conflicts with department meeting",
-      priority: "High",
-      status: "Pending",
-      submitted: "2 hours ago",
-    },
-    {
-      id: 2,
-      teacher: "Prof. Johnson",
-      subject: "Computer Science",
-      currentPeriod: "5th Period (1:00 - 1:50)",
-      requestedPeriod: "7th Period (3:00 - 3:50)",
-      reason:
-        "Need access to computer lab which is occupied during current period",
-      priority: "Medium",
-      status: "Under Review",
-      submitted: "1 day ago",
-    },
-    {
-      id: 3,
-      teacher: "Dr. Williams",
-      subject: "Physics Lab",
-      currentPeriod: "3rd Period (10:30 - 11:20)",
-      requestedPeriod: "6th Period (2:00 - 2:50)",
-      reason: "Equipment setup requires more time between classes",
-      priority: "Low",
-      status: "Approved",
-      submitted: "2 days ago",
-    },
-    {
-      id: 4,
-      teacher: "Ms. Garcia",
-      subject: "English Literature",
-      currentPeriod: "1st Period (8:30 - 9:20)",
-      requestedPeriod: "3rd Period (10:30 - 11:20)",
-      reason: "Personal medical appointment",
-      priority: "High",
-      status: "Pending",
-      submitted: "3 hours ago",
-    },
-    {
-      id: 5,
-      teacher: "Mr. Thompson",
-      subject: "History",
-      currentPeriod: "6th Period (2:00 - 2:50)",
-      requestedPeriod: "2nd Period (9:30 - 10:20)",
-      reason: "Better student engagement in morning hours",
-      priority: "Medium",
-      status: "Rejected",
-      submitted: "3 days ago",
-    },
-  ];
+  useEffect(() => {
+    fetchAPI(
+      `http://127.0.0.1:5000/api/notification/pending/${decoded[1].institution_id}/${decoded[1].department_id}`,
+      "GET"
+    ).then((data) => {
+      setChangeRequests(data.pending_schedules);
+    });
+  }, []);
 
+console.log(changeRequests)
   const toggleRequest = (id) => {
     if (expandedRequest === id) {
       setExpandedRequest(null);
@@ -216,77 +144,32 @@ function DashboardContent() {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Approved":
-        return "text-green-500";
-      case "Rejected":
-        return "text-red-500";
-      case "Under Review":
-        return "text-blue-500";
-      default:
-        return "text-orange-500"; // Pending
-    }
-  };
+  const handleUpdateRequest = (id, status)=> {
+    console.log(status)
+    console.log(res)
+    fetchAPI(
+      `http://127.0.0.1:5000/api/notification/update/deptHead/${id}`,
+      "PUT", {
+        response: res,
+        status
+      }
+    ).then((data) => {
+      console.log(data)
+      setChangeRequests((prevState)=> {
+        prevState.filter((s)=> {
+          return s.id === id
+        })
+      })
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "High":
-        return "bg-red-100 text-red-700";
-      case "Medium":
-        return "bg-yellow-100 text-yellow-700";
-      case "Low":
-        return "bg-green-100 text-green-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
+    });
+  }
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white p-6 rounded-lg shadow">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-gray-500">{stat.title}</p>
-                <h3 className="text-2xl font-bold mt-2">{stat.value}</h3>
-                <span
-                  className={`text-sm ${
-                    stat.change.startsWith("+")
-                      ? "text-green-500"
-                      : "text-red-500"
-                  }`}
-                >
-                  {stat.change} since last month
-                </span>
-              </div>
-              <div className="p-3 bg-gray-100 rounded-full">{stat.icon}</div>
-            </div>
-          </div>
-        ))}
-      </div>
 
       <div className="bg-white p-6 rounded-lg shadow mb-8">
         <div className="flex justify-between items-center mb-4 flex-wrap">
           <h2 className="text-lg font-semibold">Period Change Requests</h2>
-          <div className="flex space-x-2 flex-wrap">
-            <select className="px-3 py-2 border rounded-md text-sm my-2">
-              <option>All Statuses</option>
-              <option>Pending</option>
-              <option>Approved</option>
-              <option>Rejected</option>
-            </select>
-            <select className="px-3 py-2 border rounded-md text-sm my-2">
-              <option>All Priorities</option>
-              <option>High</option>
-              <option>Medium</option>
-              <option>Low</option>
-            </select>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm my-2">
-              New Request
-            </button>
-          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -302,47 +185,28 @@ function DashboardContent() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Priority
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Submitted
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {changeRequests.map((request) => (
+              
+              {changeRequests && changeRequests.map((request) => (
                 <Fragment key={request.id}>
                   <tr className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium">{request.teacher}</div>
+                      <div className="font-medium">{request.teacherName}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm">{request.subject}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`${getStatusColor(
-                          request.status
-                        )} font-medium`}
+                        className="text-orange-500 font-medium"
                       >
                         {request.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`${getPriorityColor(
-                          request.priority
-                        )} px-2 py-1 text-xs rounded-full`}
-                      >
-                        {request.priority}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {request.submitted}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
@@ -361,41 +225,68 @@ function DashboardContent() {
                     <tr className="bg-gray-50">
                       <td colSpan="6" className="px-6 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
+                          <div className="flex justify-between items-center flex-wrap">
+                            <div>
                             <p className="text-sm font-medium text-gray-500">
-                              Current Period
+                              Current Day
                             </p>
-                            <p className="text-sm">{request.currentPeriod}</p>
+                            <p className="text-sm">{request.currentDay}</p>
+
+                            </div>
+                            <div className="px-4"> 
+                            <p className="text-sm font-medium text-gray-500">
+                              Current Time
+                            </p>
+                            <p className="text-sm">{request.currentTime}</p>
+                            </div>
                           </div>
-                          <div>
+                          <div className="flex justify-between items-center flex-wrap">
+                            <div>
                             <p className="text-sm font-medium text-gray-500">
-                              Requested Period
+                              Current Day
                             </p>
-                            <p className="text-sm">{request.requestedPeriod}</p>
+                            <p className="text-sm">{request.preferredDay}</p>
+
+                            </div>
+                            <div className="px-4"> 
+                            <p className="text-sm font-medium text-gray-500">
+                              Current Time
+                            </p>
+                            <p className="text-sm">{request.preferredTime}</p>
+                            </div>
                           </div>
                           <div className="md:col-span-2">
                             <p className="text-sm font-medium text-gray-500">
                               Reason
                             </p>
-                            <p className="text-sm">{request.reason}</p>
+                            <p className="text-sm">{request.message}</p>
                           </div>
                         </div>
-                        <div className="mt-4 flex justify-end space-x-2">
-                          <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">
+
+                        <div className="flex justify-between items-center flex-wrap mt-4">
+
+                          <div className=" flex justify-between items-center flex-wrap mb-4">
+                          <label htmlFor="response">Message for Teacher</label>
+                          <input type="text" value={res} name="response" onChange={(e)=> setRes(e.target.value)} className="border-1 border-black rounded mx-4"/>
+                          </div>
+                        <div className="flex justify-end items-center space-x-2 mb-4">
+                          <button className="bg-green-500 text-white px-3 py-1 rounded text-sm" onClick={()=> {
+                            handleUpdateRequest(request.id, "Approved")
+                          }}>
                             Approve
                           </button>
-                          <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">
+                          <button className="bg-red-500 text-white px-3 py-1 rounded text-sm" onClick={()=> {
+                            handleUpdateRequest(request.id, "Rejected")
+                          }}>
                             Reject
-                          </button>
-                          <button className="bg-gray-500 text-white px-3 py-1 rounded text-sm">
-                            Contact Teacher
-                          </button>
+                          </button >
+                        </div>
                         </div>
                       </td>
                     </tr>
                   )}
                 </Fragment>
-              ))}
+              )) }
             </tbody>
           </table>
         </div>
@@ -426,6 +317,7 @@ function StudentsContent() {
       `http://127.0.0.1:5000/api/student/${decoded[1].institution_id}`,
       "GET"
     ).then((data) => {
+      console.log(data)
       setStudents(data.students);
     });
   }, []);
@@ -475,7 +367,7 @@ function StudentsContent() {
         ...prev,
         {
           id: data.studentData.id,
-          name: data.studentData.full_name,
+          name: data.studentData.name,
           email: data.studentData.email,
           year: data.studentData.year,
           section: data.studentData.section,
@@ -730,6 +622,7 @@ function StudentsContent() {
 
 
 function ScheduleContent() {
+  let decoded = checkTokenExpiration(localStorage.getItem("access_token"));
   const days = [
     "Monday",
     "Tuesday",
@@ -737,6 +630,7 @@ function ScheduleContent() {
     "Thursday",
     "Friday",
     "Saturday",
+    "Sunday"
   ];
   const [timeSlots, setTimeSlots] = useState([]);
   const [timeSlotsWithoutID, setTimeSlotsWithoutID] = useState([]);
@@ -749,6 +643,7 @@ function ScheduleContent() {
   const [newTimeSlot, setNewTimeSlot] = useState("");
 
   // Available teachers list
+  const [teachersInfo, setTeachersInfo] = useState([]);
   const [names, setNames] = useState([]);
 
   // State for schedule data from API
@@ -759,13 +654,12 @@ function ScheduleContent() {
       "4th Year": { "Section A": {}, "Section B": {}, "Section C": {} }
   });
 
- 
-
   // Fetch teachers and schedule data
   useEffect(() => {
     // Fetch teachers
     fetchAPI(`http://127.0.0.1:5000/api/teacher/${decoded[1].institution_id}`, "GET")
       .then((val) => {
+        setTeachersInfo(val.teachers)
         setNames(val.teachers.map((teacher) => teacher.name));
       })
       .catch(error => console.error("Error fetching teachers:", error));
@@ -773,7 +667,6 @@ function ScheduleContent() {
     // Fetch schedule data
     fetchAPI(`http://127.0.0.1:5000/api/schedule/${decoded[1].institution_id}/${decoded[1].department_id}`, "GET")
       .then((val) => {
-        console.log(val)
         setScheduleData(val);
       })
       .catch(error => console.error("Error fetching schedule:", error));
@@ -785,8 +678,9 @@ function ScheduleContent() {
           list1.push([element.id, element.time]);
           list2.push(element.time);
         });
-        setTimeSlots(list1);
-        setTimeSlotsWithoutID(list2);
+
+        setTimeSlots(list1.sort((a, b) => getTimeValue(a[1]) - getTimeValue(b[1])));
+        setTimeSlotsWithoutID(list2.sort((a, b) => getTimeValue(a) - getTimeValue(b)));
       })
       .catch(error => console.error("Error fetching schedule:", error));
   }, []);
@@ -835,7 +729,9 @@ function ScheduleContent() {
         console.error("Error posting schedule:", e);
         alert("Failed to post schedule. Please try again.");
       });
-  };
+    };
+
+
 
   // Function to check if a room is available at the specified time slot
   const isRoomAvailable = (roomToCheck, dayToCheck, timeToCheck) => {
@@ -872,9 +768,7 @@ function ScheduleContent() {
     });
   };
 
-  // Function to handle time slot management
-  const addTimeSlot = () => {
-    console.log(newTimeSlot)
+ const addTimeSlot = () => {
   if (!newTimeSlot) {
     alert("Please enter a valid time slot");
     return;
@@ -886,23 +780,10 @@ function ScheduleContent() {
     return;
   }
 
-  const getTimeValue = (timeStr) => {
-    // if (typeof timeStr !== "string") {
-    //   console.error("Invalid timeStr:", timeStr);
-    //   return Infinity;
-    // }
+  const updatedTimeSlots = [...timeSlotsWithoutID, newTimeSlot];
 
-    const [timePart, meridiem] = timeStr.split(" ");
-    let [hours, minutes] = timePart.split(":").map(Number);
-
-    if (meridiem === "PM" && hours < 12) hours += 12;
-    if (meridiem === "AM" && hours === 12) hours = 0;
-
-    return hours * 60 + minutes;
-  };
-
-  const updatedTimeSlots = [...timeSlotsWithoutID, newTimeSlot]
-  console.log(updatedTimeSlots)
+  // Sort based on time
+  updatedTimeSlots.sort((a, b) => getTimeValue(a) - getTimeValue(b));
   setTimeSlotsWithoutID(updatedTimeSlots);
   setNewTimeSlot("");
 };
@@ -929,13 +810,16 @@ function ScheduleContent() {
   const publishTimeSlot = () => {
     fetchAPI(`http://127.0.0.1:5000/api/time/${decoded[1].institution_id}/${decoded[1].department_id}`, "POST", timeSlotsWithoutID)
       .then((data) => {
-        setTimeSlots((prevState)=> ([...prevState, [data.time.id, data.time.time]]));
-      })
+        const filterData = data.time.filter((d)=> {return [d.id, d.time]})
+        setTimeSlots( [...timeSlots, [filterData[0].id, filterData[0].time]].sort((a, b) => {
+          return getTimeValue(a[1]) - getTimeValue(b[1]
+          )}))})
       .catch((e) => {
         console.error("Error posting schedule:", e);
         alert("Failed to post schedule. Please try again.");
       });
   }
+  console.log(timeSlots)
   const DeleteTimeSlot = (id,name) => {
   fetchAPI(`http://127.0.0.1:5000/api/time/${id}`, "DELETE")
     .then(() => {
@@ -971,9 +855,6 @@ function ScheduleContent() {
       alert("Failed to delete time slot. Please try again.");
     });
 };
-  console.log(scheduleData)
-  console.log(timeSlots)
-  console.log(timeSlotsWithoutID)
 
   // Form states
   const [subjectName, setSubjectName] = useState("");
@@ -1036,7 +917,8 @@ function ScheduleContent() {
       type: classType,
       department_id: decoded[1].department_id,
       institution_id: decoded[1].institution_id,
-      time_ID: timeID
+      time_ID: timeID,
+      teacher_id: teachersInfo.find((teacher)=> {return teacher.name === teacherName}).id
     };
     setScheduleData((prevData) => {
       const updatedData = JSON.parse(JSON.stringify(prevData));
