@@ -722,7 +722,6 @@ function ScheduleContent() {
 
     fetchAPI(`http://127.0.0.1:5000/api/schedule/${year}/${section}`, "POST", daySchedule)
       .then((data) => {
-        console.log("Posted schedule:", data);
         alert("Schedule successfully posted!");
       })
       .catch((e) => {
@@ -819,7 +818,6 @@ function ScheduleContent() {
         alert("Failed to post schedule. Please try again.");
       });
   }
-  console.log(timeSlots)
   const DeleteTimeSlot = (id,name) => {
   fetchAPI(`http://127.0.0.1:5000/api/time/${id}`, "DELETE")
     .then(() => {

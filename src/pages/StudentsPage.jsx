@@ -40,6 +40,7 @@ export default function StudentsPage() {
                 setStudentInfo(val.student)
                 fetchAPI(`http://127.0.0.1:5000/api/schedule/${decoded[1].institution_id}/${decoded[1].department_id}/${val.student.year}/Section ${val.student.section}`, "GET")
                   .then((val) => {
+                    console.log(val);
                     setScheduleData(val);
                   })
                   .catch(error => console.error("Error fetching schedule:", error));
@@ -69,16 +70,17 @@ export default function StudentsPage() {
 
     fetchScheduleData();
   }, []);
-
+  console.log(studentInfo)
+  console.log(scheduleData)
   // Function to get classes for a specific day and time
   const getClassForTimeSlot = (day, time) => {
     if (
       scheduleData[studentInfo.year] &&
-      scheduleData[studentInfo.year][studentInfo.section] &&
-      scheduleData[studentInfo.year][studentInfo.section][day] &&
-      scheduleData[studentInfo.year][day][time]
+      scheduleData[studentInfo.year]["Section "+studentInfo.section] &&
+      scheduleData[studentInfo.year]["Section "+studentInfo.section][day] &&
+      scheduleData[studentInfo.year]["Section "+studentInfo.section][day][time]
     ) {
-      return scheduleData[studentInfo.year][studentInfo.section][day][time];
+      return scheduleData[studentInfo.year]["Section "+studentInfo.section][day][time];
     }
     return null;
   };
@@ -118,7 +120,8 @@ export default function StudentsPage() {
   const studentInfoDiv = document.createElement('div');
   studentInfoDiv.style.textAlign = 'center';
   studentInfoDiv.style.fontSize = '14px';
-  studentInfoDiv.style.marginTop = '5px';
+  studentInfoDiv.style.marginTop = '10px';
+  
   studentInfoDiv.textContent = `Year ${studentInfo.year || ''}, Section ${studentInfo.section || ''}`;
   headerDiv.appendChild(studentInfoDiv);
   
@@ -157,11 +160,11 @@ export default function StudentsPage() {
   
   // Define options for better PDF generation
   const options = {
-    margin: [40, 10, 10, 10], // top, right, bottom, left
+    margin: [20, 10, 10, 10], // top, right, bottom, left
     filename: `${departmentInfo.name || 'Department'}_Schedule.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
-      scale: 2,
+      scale: 1,
       useCORS: true,
       onclone: function(clonedDoc) {
         console.log("Document cloned for PDF generation");
@@ -279,11 +282,11 @@ export default function StudentsPage() {
                                 : "bg-green-100 border-l-4 border-green-500"
                             }`}
                           >
-                            <p className="font-medium">{session.subject}</p>
-                            <p className="text-sm text-gray-600">
+                            <p className="font-medium mt-2">{session.subject}</p>
+                            <p className="text-sm text-gray-600 mt-2">
                               {session.teacher}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 mt-2">
                               Room: {session.room}
                             </p>
                           </div>
