@@ -11,7 +11,7 @@ const SuperAdminDashboard = () => {
   useEffect(() => {
     // Fetch institutions and pending requests from API
 
-    fetchAPI('http://127.0.0.1:5000/api/institution', 'GET').then(data => {
+    fetchAPI('https://uni-resource.onrender.com/api/institution', 'GET').then(data => {
       setInstitutions(data);
       setLoading(false);
     }).catch(error => {
@@ -59,8 +59,8 @@ const SuperAdminDashboard = () => {
     try {
       e.preventDefault();
       let institutionId = showNewAdminForm[1].id;
-      const myuser = await fetchAPI(`http://127.0.0.1:5000/api/user/register`, `POST`, {email: newAdmin.email, password: newAdmin.password, role: 'admin', institution_id: institutionId, department_id: null});
-      await fetchAPI(`http://127.0.0.1:5000/api/institution/${institutionId}/admin/register`, `POST`, {...newAdmin, user_id: myuser.user.id});
+      const myuser = await fetchAPI(`https://uni-resource.onrender.com/api/user/register`, `POST`, {email: newAdmin.email, password: newAdmin.password, role: 'admin', institution_id: institutionId, department_id: null});
+      await fetchAPI(`https://uni-resource.onrender.com/api/institution/${institutionId}/admin/register`, `POST`, {...newAdmin, user_id: myuser.user.id});
       setShowNewAdminForm(false);
       setNewAdmin({
         institutionName: '',
@@ -69,7 +69,7 @@ const SuperAdminDashboard = () => {
         adminPhone: '',
         adminPassword: ''
       });
-      fetchAPI('http://127.0.0.1:5000/api/institution', 'GET').then(data => {
+      fetchAPI('https://uni-resource.onrender.com/api/institution', 'GET').then(data => {
         setInstitutions(data);
       }).catch(error => {
         console.error('Error fetching institutions:', error);
@@ -84,14 +84,14 @@ const SuperAdminDashboard = () => {
   };
 
   const deleteAllUsers = (id) => {
-    fetchAPI(`http://127.0.0.1:5000/api/user/institution/${id}`, 'DELETE').catch(error => {
+    fetchAPI(`https://uni-resource.onrender.com/api/user/institution/${id}`, 'DELETE').catch(error => {
       console.error('Error fetching institutions:', error);
     });
   };
   //Handle request rejection
   const handleRejectRequest = (requestId) => {
 
-    fetchAPI(`http://127.0.0.1:5000/api/institution/${requestId}`, 'DELETE').then(data => {
+    fetchAPI(`https://uni-resource.onrender.com/api/institution/${requestId}`, 'DELETE').then(data => {
 
       setInstitutions((prevInstitutions) => prevInstitutions.filter((institution) => institution.id !== requestId));
     }).catch(error => {
