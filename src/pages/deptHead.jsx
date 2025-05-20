@@ -243,14 +243,14 @@ console.log(changeRequests)
                           <div className="flex justify-between items-center flex-wrap">
                             <div>
                             <p className="text-sm font-medium text-gray-500">
-                              Current Day
+                              Preferred Day
                             </p>
                             <p className="text-sm">{request.preferredDay}</p>
 
                             </div>
                             <div className="px-4"> 
                             <p className="text-sm font-medium text-gray-500">
-                              Current Time
+                              Preferred Time
                             </p>
                             <p className="text-sm">{request.preferredTime}</p>
                             </div>
